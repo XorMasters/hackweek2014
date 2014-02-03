@@ -1,0 +1,50 @@
+<html>
+
+<head>
+
+  <script src="https://cdn.firebase.com/v0/firebase.js"></script>
+
+  <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js'></script>
+
+  <script src='js/lib/adapter.js'></script>
+
+  <link rel="stylesheet" type="text/css" href="https://www.firebase.com/css/example.css">
+
+</head>
+
+<body>
+
+<textarea id="dataChannelSend" disabled placeholder="Press Start, enter some text, then press Send."></textarea>
+  <textarea id="dataChannelReceive" disabled></textarea>
+
+  <div id="buttons">
+    <button id="startButton">Start</button>
+    <button id="sendButton">Send</button>
+    <button id="closeButton">Stop</button>
+  </div>
+  
+<script>
+
+  // Get a reference to the root of the chat data.
+  var messagesRef = new Firebase("https://blazing-fire-5145.firebaseio.com");
+
+  // When the user presses enter on the message input, write the message to firebase.
+  $('#messageInput').keypress(function (e) {
+    if (e.keyCode == 13) {
+      var name = $('#nameInput').val();
+      var text = $('#messageInput').val();
+      messagesRef.push({name:name, text:text});
+      $('#messageInput').val('');
+    }
+  });
+
+  // Add a callback that is triggered for each chat message.
+  messagesRef.limit(10).on('child_added', function (snapshot) {
+    var message = snapshot.val();
+    $('<div/>').text(message.text).prepend($('<em/>')
+      .text(message.name+': ')).appendTo($('#messagesDiv'));
+    $('#messagesDiv')[0].scrollTop = $('#messagesDiv')[0].scrollHeight;
+  });
+</script>
+</body>
+</html>
