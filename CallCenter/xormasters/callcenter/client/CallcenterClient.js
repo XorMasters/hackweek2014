@@ -1,17 +1,27 @@
-var xormasters.callcenter = {
+'use strict'
 
-    CallcenterClient: function() {
+define(["callcenter/signaling/CallQueue", "callcenter/transport/Transport"], function (callQueue, transport) {
     
-        postRequest : function(name, description) {
-        },
-        
-        postClientRequest : function(clientId, name, description) {
-        },
-        
-        acceptRequest : function(contact) {
-        },
-        
-        on : function(event, handler) {
+    return {
+        createClient: function () {
+            var _postRequest = function (name, description) {
+            };
+
+            var _postClientRequest = function (clientId, name, description) {
+            };
+
+            var _acceptRequest = function (contact) {
+            };
+
+            var _on = function (event, handler) {
+            }
+
+            return {
+                postRequest: _postRequest,
+                postClientRequest: _postClientRequest,
+                acceptRequest: _acceptRequest,
+                on: _on,
+            }
         }
-    }
-};
+    };
+});

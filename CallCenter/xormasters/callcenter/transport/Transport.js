@@ -1,24 +1,27 @@
-var xormasters.callcenter.transport = {
+'use strict'
 
+define({
     Transport: function() {
-    
-        pause : function() {
-        },
-        
-        play : function() {
-        },
 
-        hangup : function() {
-        },
+        return {
+            pause : function() {
+            },
         
-        localStream : function() {
-        }
+            play : function() {
+            },
+
+            hangup : function() {
+            },
         
-        localAddress : function() {
-        }
+            localStream : function() {
+            },
         
-        on : function(event, handler) {
-            // on local/remote stream added/removed
+            localAddress : function() {
+            },
+        
+            on : function(event, handler) {
+                // on local/remote stream added/removed
+            }
         }
     }
-};
+});

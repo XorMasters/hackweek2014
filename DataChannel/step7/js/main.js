@@ -101,14 +101,14 @@ socket.on('log', function (array){
 ////////////////////////////////////////////////
 
 function sendMessage(message){
-	console.log('Sending message: ', message);
+    console.log('Sending message: ', message);
   socket.emit('message', message);
 }
 
 socket.on('message', function (message){
   console.log('Received message:', message);
   if (message === 'got user media') {
-  	maybeStart();
+    maybeStart();
   } else if (message.type === 'offer') {
     if (!isInitiator && !isStarted) {
       maybeStart();
@@ -153,7 +153,7 @@ function maybeStart() {
 }
 
 window.onbeforeunload = function(e){
-	sendMessage('bye');
+    sendMessage('bye');
 }
 
 /////////////////////////////////////////////////////////

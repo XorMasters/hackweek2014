@@ -1,17 +1,20 @@
-var xormasters.callcenter.signaling = {
+'use strict'
 
+define({
     CallQueue: function() {
-    
-        this.postRequest: function(request) {
-        },
+
+        return {
+            postRequest : function(request) {
+            },
+
+            postClientRequest : function(request, client) {
+            },
         
-        this.postClientRequest: function(request, client) {
-        },
+            acceptRequest : function(request, response) {
+            },
         
-        this.acceptRequest : function(request, response) {
-        },
-        
-        this.on : function(event, handler) {
-        }
+            on : function(event, handler) {
+            }
+        };
     }
-};
+});

@@ -1,14 +1,16 @@
-var xormasters.callcenter = {
+'use strict'
 
-    Contact: function() {
-    
-        name : function() {
-        },
-        
-        description : function() {
-        },
+define({
+    Contact: function (name, description, callInfo) {
 
-        callInfo : function() {
-        }
+        var _name = name;
+        var _description = description;
+        var _callInfo = callInfo;
+
+        return {
+            name : _name,
+            description : _description,
+            callInfo : _callInfo
+        };
     }
-};
+});
