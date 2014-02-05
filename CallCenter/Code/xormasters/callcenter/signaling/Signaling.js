@@ -1,10 +1,14 @@
 'use strict'
 
 define({
-    CallQueue: function() {
+    Signaling: function(myAgentDataRef , myClientDataRef) {
 
+        var AgentDataref = myAgentDataRef;
+        var ClientDataref = myClientDataRef;
         return {
+
             postRequest : function(request) {
+                AgentDataref.push(request);
             },
 
             postClientRequest : function(request, client) {

@@ -1,6 +1,6 @@
 'use strict'
 
-define(["xormasters/callcenter/signaling/CallQueue", "xormasters/callcenter/transport/Transport"], function (callQueue, transport) {
+define(["xormasters/callcenter/signaling/Signaling", "xormasters/callcenter/transport/Transport"], function (Signaling, transport) {
     
     return {
         createClient: function () {

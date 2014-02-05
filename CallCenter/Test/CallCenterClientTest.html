@@ -12,13 +12,17 @@
     <!-- <link rel='stylesheet' href='css/main.css' /> -->
 
 </head>
+    <script src="https://cdn.firebase.com/v0/firebase.js"></script>
+    <script src="../Lib/require.js"></script>
+    <script src="CallCenterClientTest.js"></script>
 
 <body>
     <script>
+        var AgentDataRef = new Firebase("https://xormastersclient.firebaseio.com");
+        var ClentDataRef = new Firebase("https://blazing-fire-5145.firebaseio.com");
         console.log("Inside HTML");
     </script>
-    <script src="../Lib/require.js"></script>
-    <script src="CallCenterClientTest.js"></script>
+
 </body>
 </html>
 
