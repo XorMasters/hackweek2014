@@ -3,7 +3,7 @@
 define(
     ["EventEmitter",
      "WebRtcAdapter",
-     "Transport"],
+     "xormasters/callcenter/transport/Transport"],
     function (EventEmitter, WebRtcAdapter, Transport) {
 
   var findEntry = function(entry, queue) {
