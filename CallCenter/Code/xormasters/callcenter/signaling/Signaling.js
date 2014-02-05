@@ -7,11 +7,12 @@ define({
         var ClientDataref = myClientDataRef;
         return {
 
-            postRequest : function(request) {
+            postAgentRequest : function(request) {
                 AgentDataref.push(request);
             },
 
-            postClientRequest : function(request, client) {
+            postClientRequest : function(request) {
+                ClientDataref.push(request);
             },
         
             acceptRequest : function(request, response) {
