@@ -1,10 +1,12 @@
 'use strict'
 
-var xormasters = xormasters || {};
+define(
+    ["EventEmitter",
+     "WebRtcAdapter",
+     "Transport"],
+    function (EventEmitter, WebRtcAdapter, Transport) {
 
-xormasters.queue = {
-
-  findEntry: function(entry, queue) {
+  var findEntry = function(entry, queue) {
     var idx = -1;
     for( var i = 0; i < queue.length; i++ ) {
       console.log( "i = " + i + ", entry.time = " + entry.time + ", " + ", queue[i].time = " + queue[i].time)
@@ -14,16 +16,16 @@ xormasters.queue = {
       }
     }
     return idx;
-  },
+  }
   
-  CallQueue: function(masterNode) {
+  var CallQueue = function(masterNode) {
     this.isMasterNode = masterNode;
-    this.session = new xormasters.transport.Session();
+    this.session = new Transport.Session();
     this.call_queue = new Array();
   }
-}
 
-xormasters.queue.CallQueue.prototype = {
+
+CallQueue.prototype = {
   start: function() {
     this.session.addTransport('call_queue');
     
@@ -102,4 +104,10 @@ xormasters.queue.CallQueue.prototype = {
   }
 }
 
-xormasters.queue.CallQueue.prototype.__proto__ = EventEmitter.prototype;
+CallQueue.prototype.__proto__ = EventEmitter.prototype;
+
+return {
+  CallQueue: CallQueue
+  };
+}
+);
