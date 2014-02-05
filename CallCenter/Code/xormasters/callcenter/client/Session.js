@@ -1,6 +1,6 @@
 'use strict'
 
-define(["transport/Transport"], function (transportModule) {
+define(["xormasters/callcenter/transport/Transport"], function (transportModule) {
 
     return function Session(transport) {
 

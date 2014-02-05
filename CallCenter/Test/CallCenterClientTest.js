@@ -1,10 +1,10 @@
 console.log("Inside Test");
 
 require.config({
-    baseUrl: '../Code/xormasters'
+    baseUrl: '../Code'
 });
 
-require(["callcenter/Contact", "callcenter/client/CallcenterClient", ], function (contact, callcenter) {
+require(["xormasters/callcenter/Contact", "xormasters/callcenter/CallcenterClient", ], function (contact, callcenter) {
 
     var contactObj = new contact.Contact("name", "description", {});
     var client = callcenter.createClient();
