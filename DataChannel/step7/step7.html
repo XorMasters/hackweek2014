@@ -28,11 +28,45 @@
 </div>
 
 <script src='/socket.io/socket.io.js'></script>
+<script src='js/EventEmitter.js'></script>
 <script src='js/lib/adapter.js'></script>
 <script src='js/main.js'></script>
 
 <script>
-  
+  console.log('Boot strapping system');
+var session = new xormasters.transport.Session();
+session.addTransport('client');
+
+
+window.onbeforeunload = function(e){
+    session.removeTransport('client');
+}
+
+var sendButton = document.getElementById("sendButton");
+sendButton.onclick = function() {
+  var sendTextarea = document.getElementById("dataChannelSend");
+  session.transport.sendData(sendTextarea.value);
+}
+
+session.transport.on('data', function(data) {
+  var receiveTextarea = document.getElementById("dataChannelReceive");
+  receiveTextarea.value = data;
+});
+
+session.on('connected', function() {
+  var dataChannelSend = document.getElementById("dataChannelSend");
+  dataChannelSend.disabled = false;
+  dataChannelSend.focus();
+  dataChannelSend.placeholder = "";
+  sendButton.disabled = false;
+});
+
+session.on('disconnected', function() {
+  var dataChannelSend = document.getElementById("dataChannelSend");
+  dataChannelSend.disabled = true;
+  sendButton.disabled = true;
+});
+
 </script>
 
 </body>
