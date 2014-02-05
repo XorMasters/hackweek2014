@@ -6,7 +6,7 @@
 
   <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js'></script>
 
-  <script src='js/api/'></script>
+  <script src='js/api/signaling.js'></script>
 
   <link rel="stylesheet" type="text/css" href="https://www.firebase.com/css/example.css">
 
@@ -14,18 +14,23 @@
 
 <body>
 
-  <video id="localVideo" autoplay muted></video>
-  <video id="remoteVideo" autoplay muted></video>
-
-  <textarea id="Callername" enable></textarea>
-  <textarea id="Issue" enable></textarea>
-
-  <div id="buttons">
+   <div id="buttons">
     <button id="startButton">Talk to Agent</button>
-    <button id="hangupButton">Hang Up</button>
-    <button id="closeButton">Stop</button>
   </div>
   
+
+  <script>
+  var startButton = document.getElementById("startButton");
+
+  startButton.onclick = start;
+
+  function start() {
+    xormaster.signaling.Signaling.postRequest({name: "Sagar" , issue : "this is wierd"});
+  }
+
+
+
+  </script>
 </body>
 
 </html>
