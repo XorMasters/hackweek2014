@@ -4,24 +4,8 @@ define({
     Transport: function() {
 
         return {
-            pause : function() {
+            createSession : function() {
             },
-        
-            play : function() {
-            },
-
-            hangup : function() {
-            },
-        
-            localStream : function() {
-            },
-        
-            localAddress : function() {
-            },
-        
-            on : function(event, handler) {
-                // on local/remote stream added/removed
-            }
         }
     }
 });
