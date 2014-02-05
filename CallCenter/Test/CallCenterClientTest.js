@@ -1,7 +1,7 @@
 console.log("Inside Test");
 
 require.config({
-    baseUrl: '../xormasters'
+    baseUrl: '../Code/xormasters'
 });
 
 require(["callcenter/Contact", "callcenter/client/CallcenterClient", ], function (contact, callcenter) {
