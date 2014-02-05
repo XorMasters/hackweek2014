@@ -1,6 +1,6 @@
 var static = require('node-static');
 var http = require('http');
-var file = new(static.Server)();
+var file = new(static.Server)({cache: false});
 var app = http.createServer(function (req, res) {
   file.serve(req, res);
 }).listen(2013);
