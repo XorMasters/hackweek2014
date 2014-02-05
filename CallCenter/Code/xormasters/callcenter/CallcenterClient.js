@@ -1,6 +1,17 @@
 'use strict'
 
+define(
+    ["xormasters/callcenter/signaling/CallQueue",
+     "xormasters/callcenter/transport/Transport"],
+        
+    function (signalling, transport) {
 define(["xormasters/callcenter/signaling/Signaling", "xormasters/callcenter/transport/Transport"], function (signaling, transport) {
+define(
+    ["xormasters/callcenter/signaling/Signaling",
+     "xormasters/callcenter/transport/Transport",
+     "EventEmitter"],
+        
+    function (signaling, transport, EventEmitter) {
     
     return {
         createClient: function () {
