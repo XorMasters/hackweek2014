@@ -79,6 +79,7 @@ xormasters.transport = {
       this.pc = new RTCPeerConnection(pc_config, pc_constraints);
       
       this.session.on( 'message', function(message) {
+        console.log( "get message of type: " + message.type);
         if (message === 'got user media') {
           thi$.maybeStart();
         } else if (message.type === 'offer') {
@@ -101,9 +102,9 @@ xormasters.transport = {
 };
 
 xormasters.transport.Session.prototype = {
-  addTransport: function(name) {
+  addTransport: function(name, constraints) {
     this.transport = new xormasters.transport.Transport(name, this);
-    this.transport.start();
+    this.transport.start(constraints);
   },
   
   removeTransport: function(name) {
@@ -114,11 +115,11 @@ xormasters.transport.Session.prototype = {
 }
 
 xormasters.transport.Transport.prototype = {
-  start: function() {
-    console.log('Starting Data Channel.');
-    this.sendMessage('got user media');
-    if (this.isInitiator) {
-      this.maybeStart();
+  start: function(constraints) {
+    if(constraints == null || !(constraints.audio || constraints.video)) {
+      this.connect();
+    } else {
+      getUserMedia(constraints, this.handleUserMedia, this.handleUserMediaError);
     }
   },
   
@@ -138,6 +139,14 @@ xormasters.transport.Transport.prototype = {
   
   setChannelReady: function(ready) {
     this.isChannelReady = ready;
+  },
+  
+  connect: function() {
+    console.log('Starting Data Channel.');
+    this.sendMessage('got user media');
+    if (this.isInitiator) {
+      this.maybeStart();
+    }
   }
 }
 
@@ -177,11 +186,14 @@ xormasters.transport.Transport.prototype.createPeerConnection = function() {
       return;
   }
 
+  this.pc.onaddstream = this.handleRemoteStreamAdded;
+  this.pc.onremovestream = this.handleRemoteStreamRemoved;
+  
   if (this.isInitiator) {
     try {
       // Reliable Data Channels not yet supported in Chrome
       this.sendChannel = this.pc.createDataChannel("sendDataChannel",
-        {reliable: true});
+        {reliable: false});
       this.sendChannel.onmessage = this.handleMessage;
       trace('Created send data channel');
     } catch (e) {
@@ -250,6 +262,29 @@ xormasters.transport.Transport.prototype.registerListeners = function() {
   this.setLocalAndSendMessage = function(sessionDescription) {
     thi$.pc.setLocalDescription(sessionDescription);
     thi$.sendMessage(sessionDescription);
+  }
+  
+  this.handleUserMedia = function(stream) {
+    thi$.localstream = stream;
+    thi$.pc.addStream(stream);
+    console.log(stream);
+    thi$.emit('localStreamAdded', stream);
+    thi$.connect();
+  }
+  
+  this.handleUserMediaError = function(error) {
+    console.error( "getUserMedia error: ", error );
+  }
+  
+  this.handleRemoteStreamAdded = function(event) {
+    console.log("Remote stream added");
+    thi$.remoteStream = event.stream
+    thi$.emit('remoteStreamAdded', event.stream);
+  }
+  
+  this.handleRemoteStreamRemoved = function(event) {
+    console.log( "Remote stream removed" );
+    thi$.emit('remoteStreamRemoved');
   }
 }
 

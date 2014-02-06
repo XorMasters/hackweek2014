@@ -25,6 +25,12 @@
 
   <button id="sendButton" disabled>Send</button>
 
+  <div id='videos'>
+    <video id='localVideo' autoplay muted></video>
+    <video id='remoteVideo' autoplay></video>
+  </div>
+
+
 </div>
 
 <script src='/socket.io/socket.io.js'></script>
@@ -33,7 +39,10 @@
 <script src='js/main.js'></script>
 
 <script>
-  console.log('Boot strapping system');
+var localVideo = document.querySelector('#localVideo');
+var remoteVideo = document.querySelector('#remoteVideo');
+
+console.log('Boot strapping system');
 var session = new xormasters.transport.Session();
 session.addTransport('client');
 
@@ -51,6 +60,14 @@ sendButton.onclick = function() {
 session.transport.on('data', function(data) {
   var receiveTextarea = document.getElementById("dataChannelReceive");
   receiveTextarea.value = data;
+});
+
+session.transport.on('localStreamAdded', function(stream){
+  attachMediaStream(localVideo, stream);
+});
+
+session.transport.on('remoteStreamAdded', function(stream){
+  attachMediaStream(remoteVideo, stream);
 });
 
 session.on('connected', function() {
