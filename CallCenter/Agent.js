@@ -21,13 +21,14 @@ require(["xormasters/callcenter/Contact", "xormasters/callcenter/CallcenterClien
     console.log(contactObj);
     console.log(client);
 
-    AgentDataRef.on("value", function(snapshot) {
-                var data = snapshot.val();
-                if(data.name = "Master") {
+    AgentDataRef.on("child_added", function(snapshot) {
+                var name = snapshot.child('name').val();
+                if(name == "Master") {
                     AgentDataRef.remove();
                     _signaling.postAgentRequest(contactObj);
-                    console.log("Value AgentDataRef " + data.name);
+                    
                 }
+                console.log("Value AgentDataRef " + name);
                 
             }); 
 
