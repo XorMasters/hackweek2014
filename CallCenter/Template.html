@@ -46,6 +46,8 @@
           newDiv.setAttribute('onmousedown', 'entryDown("entry' + idx + '")');
           newDiv.setAttribute('onmouseup', 'entryUp("entry' + idx + '", true)');
           newDiv.setAttribute('onmouseout', 'entryUp("entry' + idx + '", false)');
+          
+          newDiv.setAttribute('ontouchstart', 'entryDown("entry' + idx + '")', false);
         }
         
         var nameDiv = document.createElement('div')
