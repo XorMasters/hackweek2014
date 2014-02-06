@@ -32,13 +32,13 @@ require(
                 agentSession.sendData({ message: "Hello from master node" });
             });
 
-            agentSession.on('data', function (data) {
+            agentSession.addTransportWithRemote("AgentSession" + agentContact.name, agentContact.callInfo);
+
+            agentSession.transport.on('data', function (data) {
                 console.log("Received data: " + data);
             })
 
             agentSessions.push({ sessionId: agentContact.name, session: agentSession });
-
-            agentSession.addTransportWithRemote("AgentSession" + agentContact.name, agentContact.callInfo);
         }
 
         function hangup() {

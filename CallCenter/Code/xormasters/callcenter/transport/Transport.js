@@ -27,7 +27,7 @@ define(
 
         var Session = function () {
             var thi$ = this;
-            this.transport = new Transport('client', this);
+            this.transport = undefined;
 
             var room = location.pathname.substring(1);
             if (room === '') {
@@ -87,7 +87,7 @@ define(
                 hasAllCandidates : false
             };
             this.remoteCallInfo = null;
-            this.inConnection = true;
+            this.inConnection = false;
             var thi$ = this;
             
       
@@ -161,8 +161,8 @@ define(
             accept: function (remoteCallInfo) {
                 console.log('Transport ' + this.name + ' accepting call');
                 this.setChannelReady(true);
-                this.setRemoteCallInfo(remoteCallInfo);
                 this.setInitiator(false);
+                this.setRemoteCallInfo(remoteCallInfo);
                 this.maybeStart();
             },
 
@@ -213,6 +213,10 @@ define(
                     iceCandidates: new Array().concat(callInfo.iceCandidates),
                     sessionDescription: callInfo.sessionDescription
                 };
+                if (!this.isInitiator) {
+                    this.pc.setRemoteDescription(
+                            new RTCSessionDescription(this.remoteCallInfo.sessionDescription));
+                }
                 console.log('Transport ' + this.name + ' now has ' + this.remoteCallInfo.iceCandidates.length + ' remote candidates');
                 this.checkAndConnect();
             },
@@ -230,16 +234,26 @@ define(
             },
 
             checkAndConnect: function () {
+
+                console.log(
+                        'checkAndConnect ',
+                        'this.inConnection', this.inConnection , ' ',
+                        'this.localCallInfo.sessionDescription != null=', this.localCallInfo.sessionDescription != null , ' ',
+                        'this.localCallInfo.hasAllCandidates=', this.localCallInfo.hasAllCandidates , ' ',
+                        'this.localCallInfo.hasAllCandidates=', this.remoteCallInfo != null);
+
                 if (!this.inConnection && this.localCallInfo.sessionDescription != null
                         && this.localCallInfo.hasAllCandidates
                         && this.remoteCallInfo != null) {
 
                     this.inConnection = true;
 
-                    this.pc.setRemoteDescription(
-                            new RTCSessionDescription(this.remoteCallInfo.sessionDescription));
+                    if (this.isInitiator) {
+                        this.pc.setRemoteDescription(
+                                new RTCSessionDescription(this.remoteCallInfo.sessionDescription));
+                    }
 
-                    for (index = 0; index < this.remoteCallInfo.iceCandidates.length; ++index) {
+                    for (var index = 0; index < this.remoteCallInfo.iceCandidates.length; ++index) {
                         var candidate = new RTCIceCandidate({
                             sdpMLineIndex: this.remoteCallInfo.iceCandidates[index].label,
                             candidate: this.remoteCallInfo.iceCandidates[index].candidate
@@ -364,9 +378,11 @@ define(
             }
 
             this.setLocalAndSendMessage = function (sessionDescription) {
+                console.log('Set Local send message \n');
                 thi$.pc.setLocalDescription(sessionDescription);
                 thi$.setLocalDescription(sessionDescription);
                 thi$.sendMessage(sessionDescription);
+
             }
         }
 
