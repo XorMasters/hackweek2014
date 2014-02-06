@@ -38,7 +38,7 @@ define(
 
             if (room !== '') {
                 console.log('Create or join room', room);
-                socket.emit('create or join', room);
+                //socket.emit('create or join', room);
             }
 
             socket.on('created', function (room) {
@@ -80,7 +80,15 @@ define(
             this.isChannelReady = false;
             this.isStarted = false;
             this.sendChannel = null;
+            this.localCallInfo = {
+                iceCandidates: new Array(),
+                sessionDescription: null,
+                hasAllCandidates : false
+            };
+            this.remoteCallInfo = null;
+            this.inConnection = true;
             var thi$ = this;
+            
       
             this.registerListeners();
 
@@ -145,22 +153,88 @@ define(
 
             setChannelReady: function (ready) {
                 this.isChannelReady = ready;
+            },
+
+            addLocalCandidate: function (candidate) {
+                console.log('Adding local candidate to transport ' + this.name);
+                this.localCallInfo.iceCandidates.push(candidate);
+                console.log('Transport ' + this.name + ' now has ' + this.localIceCandidates.length + ' local candidates');
+                this.checkAndConnect();
+            },
+
+            finalizeLocalCandidates: function () {
+                console.log('All local candidates for transport ' + this.name + ' have been added');
+                this.localCallInfo.hasAllCandidates = true;
+
+                this.checkAndEmitLocalCallInfo();
+                this.checkAndConnect();
+            },
+
+            setLocalDescription: function (sessionDescription) {
+                console.log('Storing local session description for transport ' + this.name);
+                this.localCallInfo.sessionDescription = sessionDescription;
+
+                this.checkAndEmitLocalCallInfo();
+                this.checkAndConnect();
+            },
+
+            setRemoteCallInfo: function (callInfo) {
+                console.log('Adding remote call info to transport ' + this.name);
+                this.remoteCallInfo = {
+                    iceCandidates: new Array().concat(callInfo.iceCandidates),
+                    sessionDescription: callInfo.sessionDescription
+                };
+                console.log('Transport ' + this.name + ' now has ' + this.remoteCallInfo.iceCandidates.length + ' remote candidates');
+                this.checkAndConnect();
+            },
+
+            checkAndEmitLocalCallInfo: function() {
+                if (this.localCallInfo.sessionDescription != null
+                        && this.localCallInfo.hasAllCandidates) {
+                    this.emit(
+                            'localCallInfoAvailable',
+                            {
+                                iceCandidates: new Array().concat(this.localCallInfo.iceCandidates),
+                                sessionDescription: this.localCallInfo.sessionDescription
+                            });
+                }
+            },
+
+            checkAndConnect: function () {
+                if (!inConnection && this.localCallInfo.sessionDescription != null
+                        && this.localCallInfo.hasAllCandidates
+                        && this.remoteCallInfo != null) {
+
+                    this.inConnection = true;
+
+                    this.pc.setRemoteDescription(
+                            new RTCSessionDescription(this.remoteCallInfo.sessionDescription));
+
+                    for (index = 0; index < this.remoteCallInfo.iceCandidates.length; ++index) {
+                        var candidate = new RTCIceCandidate({
+                            sdpMLineIndex: this.remoteCallInfo.iceCandidates[index].label,
+                            candidate: this.remoteCallInfo.iceCandidates[index].candidate
+                        });
+                        this.pc.addIceCandidate(candidate);
+                    }
+                }
             }
         }
 
         Session.prototype.sendMessage = function (message) {
-            console.log('Sending message: ', message);
-            this.socket.emit('message', message);
+            //console.log('Sending message: ', message);
+            //this.socket.emit('message', message);
         }
 
         Transport.prototype.sendMessage = function (message) {
-            console.log('Sending message: ', message);
-            this.session.socket.emit('message', message);
+            //console.log('Sending message: ', message);
+            //this.session.socket.emit('message', message);
         }
 
         ////////////////////////////////////////////////////
 
         Transport.prototype.maybeStart = function () {
+            console.log("Transport.prototype.maybeStart: this.isStarted=" + this.isStarted + " this.isChannelReady= " + this.isChannelReady);
             if (!this.isStarted && this.isChannelReady) {
                 this.createPeerConnection();
                 this.isStarted = true;
@@ -238,14 +312,16 @@ define(
             this.handleIceCandidate = function (event) {
                 console.log('handleIceCandidate event: ', event);
                 if (event.candidate) {
-                    thi$.sendMessage({
+                    var candidate = {
                         type: 'candidate',
                         label: event.candidate.sdpMLineIndex,
                         id: event.candidate.sdpMid,
                         candidate: event.candidate.candidate
-                    });
+                    };
+                    thi$.sendMessage(candidate);
+                    thi$.addLocalCandidate(candidate);
                 } else {
-                    console.log('End of candidates.');
+                    thi$.finalizeLocalCandidates();
                 }
             }
 
@@ -253,10 +329,12 @@ define(
                 console.log('Session terminated.');
                 thi$.stop();
                 thi$.isInitiator = false;
+                thi$.inConnection = false;
             }
 
             this.setLocalAndSendMessage = function (sessionDescription) {
                 thi$.pc.setLocalDescription(sessionDescription);
+                this.setLocalDescription(sessionDescription);
                 thi$.sendMessage(sessionDescription);
             }
         }

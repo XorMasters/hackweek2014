@@ -8,28 +8,50 @@ require.config({
     baseUrl: './Code'
 });
 
-require(["xormasters/callcenter/Contact", "xormasters/callcenter/CallcenterClient", "xormasters/callcenter/signaling/Signaling"], function (contact, callcenter, signaling) {
+// TODO: get unique agent name for each agent
+var agentName = "Agent";
 
-    var contactObj = new contact.Contact("Agent", "Test answer made by Agent", {});
-   
-    var client = callcenter.createClient();
-    var AgentDataRef = new Firebase("https://xormastersclient.firebaseio.com");
-    var ClientDataRef = new Firebase("https://blazing-fire-5145.firebaseio.com");
-    var _signaling = new signaling.Signaling(AgentDataRef,ClientDataRef);
+require(
+    ["xormasters/callcenter/Contact",
+     "xormasters/callcenter/transport/Transport",
+     "xormasters/callcenter/signaling/Signaling"],
 
+    function (modContact, modTransport, modSignaling) {
 
-    console.log(contactObj);
-    console.log(client);
+        var agentDataRef = new Firebase("https://xormastersclient.firebaseio.com");
+        var clientDataRef = new Firebase("https://blazing-fire-5145.firebaseio.com");
+        var signaling = new modSignaling.Signaling(agentDataRef, clientDataRef);
 
-    AgentDataRef.on("child_added", function(snapshot) {
+        var masterSession = new modTransport.Session();
+
+        function initiateMasterSession() {
+
+            masterSession.on('localCallInfoAvailable', function (localCallInfo) {
+                console.log('Received local call info. Posting agent request...');
+                var localAgentContact = new modContact.Contact(agentName, "Test answer made by Agent", localCallInfo);
+                signaling.postAgentRequest(localAgentContact);
+            });
+
+            agentDataRef.on("child_added", function (snapshot) {
                 var name = snapshot.child('name').val();
-                if(name == "Master") {
-                    AgentDataRef.remove();
-                    _signaling.postAgentRequest(contactObj);
-                    
+                if (name == "Master") {
+                    console.log("Request accepted by master.");
+                    agentDataRef.remove();
                 }
-                console.log("Value AgentDataRef " + name);
-                
-            }); 
+            });
 
-});
+            masterSession.addTransport("MasterSession");
+        }
+
+        function hangupMasterSession() {
+            if (masterSession != undefined) {
+                masterSession.removeTransport("MasterSession");
+                masterSession = undefined;
+            }
+        }
+
+        initiateMasterSession();
+
+        setTimeout(hangupMasterSession, 10000);
+    }
+);
