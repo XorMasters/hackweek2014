@@ -1,24 +1,40 @@
 'use strict'
 
 define(
-    function() {
+    ["EventEmitter"],
+    function(EventEmitter) {
 
         var masterDestination = "Master";
 
-        var AgentSignaling = function(isMaster) {
+//==================================================================================================
+// Agent <-> Master Signaling
+        var AgentSignaling = function (isMaster, localDestination) {
 
+            //Sagar's Firebase
             this.agentDataRef = new Firebase("https://xormastersclient.firebaseio.com");
+            //Stan's Firebase
+            //this.agentDataRef = new Firebase("https://resplendent-fire-4441.firebaseio.com/");
             this.isMaster = isMaster;
+            this.localDestination = localDestination;
+            var thi$ = this;
 
-            agentDataRef.on("child_added", function (snapshot) {
+            this.agentDataRef.on("child_added", function (snapshot) {
                 var destination = snapshot.child('destination').val();
 
-                if (this.isMaster) {
+                if (thi$.isMaster) {
                     var agentContact = snapshot.child('source').val();
-                    emit('agent_request', agentContact);
+                    console.log('Received child_added for destination: ', destination, ' source ', agentContact);
+                    if ((destination === localDestination)
+                            && (agentContact.name.indexOf('Agent') == 0)) {
+                        thi$.emit('agent_request', agentContact);
+                    }
                 } else {
                     var masterContact = snapshot.child('source').val();
-                    emit('master_accepted', masterContact);
+                    console.log('Received child_added for destination: ', destination, ' source ', masterContact);
+                    if ((destination === localDestination)
+                            && (masterContact.name.indexOf('Master') == 0)) {
+                        thi$.emit('master_accepted', masterContact);
+                    }
                     // TODO: How about multiple agents at the same time?
                     // snapshot.remove();
                 }
@@ -53,7 +69,8 @@ define(
         AgentSignaling.prototype.__proto__ = EventEmitter.prototype;
 
 //==================================================================================================
-        var ClientSignaling = function() {
+// Client <-> Master Signaling
+        var ClientSignaling = function () {
 
             var clientDataRef = new Firebase("https://blazing-fire-5145.firebaseio.com");
         };
@@ -69,9 +86,21 @@ define(
         
         ClientSignaling.prototype.__proto__ = EventEmitter.prototype;
 
+//==================================================================================================
+// Factories
+        function createSignalingForAgent(localDestination) {
+            return new AgentSignaling(false, localDestination);
+        }
+
+        function createSignalingForMaster() {
+            return new AgentSignaling(true, masterDestination);
+        }
+
+//==================================================================================================
+// Exports
         return {
-            AgentSignaling : AgentSignaling,
-            ClientSignaling : ClientSignaling
+            createSignalingForAgent: createSignalingForAgent,
+            createSignalingForMaster: createSignalingForMaster
         }
     }
 );

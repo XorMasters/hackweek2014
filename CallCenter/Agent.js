@@ -18,26 +18,30 @@ require(
 
     function (modContact, modTransport, modSignaling) {
 
-        var agentDataRef = new Firebase("https://xormastersclient.firebaseio.com");
-        var clientDataRef = new Firebase("https://blazing-fire-5145.firebaseio.com");
-        var signaling = new modSignaling.Signaling(agentDataRef, clientDataRef);
-
+        var signaling = new modSignaling.createSignalingForAgent(agentName);
         var masterSession = new modTransport.Session();
 
         function initiateMasterSession() {
 
             masterSession.on('localCallInfoAvailable', function (localCallInfo) {
                 console.log('Received local call info. Posting agent request...');
-                var localAgentContact = new modContact.Contact(agentName, "Test answer made by Agent", localCallInfo);
+                var localAgentContact =
+                        new modContact.Contact(agentName, "Master session request from agent " + agentName, localCallInfo);
                 signaling.postAgentRequest(localAgentContact);
             });
 
-            agentDataRef.on("child_added", function (snapshot) {
-                var name = snapshot.child('name').val();
-                if (name == "Master") {
-                    console.log("Request accepted by master.");
-                    agentDataRef.remove();
-                }
+            masterSession.on('connected', function () {
+                console.log('Agent connected to master session');
+                masterSession.sendData({ message: "Hello from agent " });
+            });
+
+            masterSession.on('data', function (data) {
+                console.log("Received data: " + data);
+            })
+
+            signaling.on('master_accepted', function (masterContact) {
+                console.log("Request accepted by master node.");
+                masterSession.setRemoteCallInfo("MasterSession", masterContact.callInfo);
             });
 
             masterSession.addTransport("MasterSession");
@@ -52,6 +56,6 @@ require(
 
         initiateMasterSession();
 
-        setTimeout(hangupMasterSession, 10000);
+        //setTimeout(hangupMasterSession, 10000);
     }
 );

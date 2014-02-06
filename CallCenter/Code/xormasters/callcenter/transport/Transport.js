@@ -34,10 +34,11 @@ define(
                 room = 'foo';
             }
 
-            var socket = io.connect();
+            //var socket = io.connect();
+            var socket = new EventEmitter();
 
             if (room !== '') {
-                console.log('Create or join room', room);
+                //console.log('Create or join room', room);
                 //socket.emit('create or join', room);
             }
 
@@ -121,7 +122,27 @@ define(
                 this.transport.start();
             },
 
+            addTransportWithRemote: function (name, remoteCallInfo) {
+                this.transport = new Transport(name, this);
+                this.transport.accept(remoteCallInfo);
+            },
+
             removeTransport: function (name) {
+                this.transport.stop();
+                this.sendMessage('bye');
+                this.transport = undefined;
+            },
+
+            setRemoteCallInfo: function (name, callInfo) {
+                console.log('Setting remote call info for transport \'' + name + '\'');
+                this.transport.setRemoteCallInfo(callInfo);
+            },
+
+            sendData: function (data) {
+                this.transport.sendData(data);
+            },
+
+            close : function() {
                 this.transport.stop();
                 this.sendMessage('bye');
                 this.transport = undefined;
@@ -130,11 +151,19 @@ define(
 
         Transport.prototype = {
             start: function () {
-                console.log('Starting Data Channel.');
+                console.log('Transport ' + this.name + ' starting call');
                 this.sendMessage('got user media');
-                if (this.isInitiator) {
-                    this.maybeStart();
-                }
+                this.setChannelReady(true);
+                this.setInitiator(true);
+                this.maybeStart();
+            },
+
+            accept: function (remoteCallInfo) {
+                console.log('Transport ' + this.name + ' accepting call');
+                this.setChannelReady(true);
+                this.setRemoteCallInfo(remoteCallInfo);
+                this.setInitiator(false);
+                this.maybeStart();
             },
 
             stop: function () {
@@ -158,7 +187,7 @@ define(
             addLocalCandidate: function (candidate) {
                 console.log('Adding local candidate to transport ' + this.name);
                 this.localCallInfo.iceCandidates.push(candidate);
-                console.log('Transport ' + this.name + ' now has ' + this.localIceCandidates.length + ' local candidates');
+                console.log('Transport ' + this.name + ' now has ' + this.localCallInfo.iceCandidates.length + ' local candidates');
                 this.checkAndConnect();
             },
 
@@ -191,7 +220,7 @@ define(
             checkAndEmitLocalCallInfo: function() {
                 if (this.localCallInfo.sessionDescription != null
                         && this.localCallInfo.hasAllCandidates) {
-                    this.emit(
+                    this.session.emit(
                             'localCallInfoAvailable',
                             {
                                 iceCandidates: new Array().concat(this.localCallInfo.iceCandidates),
@@ -201,7 +230,7 @@ define(
             },
 
             checkAndConnect: function () {
-                if (!inConnection && this.localCallInfo.sessionDescription != null
+                if (!this.inConnection && this.localCallInfo.sessionDescription != null
                         && this.localCallInfo.hasAllCandidates
                         && this.remoteCallInfo != null) {
 
@@ -240,6 +269,8 @@ define(
                 this.isStarted = true;
                 if (this.isInitiator) {
                     this.doCall();
+                } else {
+                    this.doAnswer();
                 }
             }
         }
@@ -334,7 +365,7 @@ define(
 
             this.setLocalAndSendMessage = function (sessionDescription) {
                 thi$.pc.setLocalDescription(sessionDescription);
-                this.setLocalDescription(sessionDescription);
+                thi$.setLocalDescription(sessionDescription);
                 thi$.sendMessage(sessionDescription);
             }
         }
@@ -356,7 +387,7 @@ define(
         }
 
         Transport.prototype.doAnswer = function () {
-            console.log('Sending answer to peer.');
+            //console.log('Sending answer to peer.');
             this.pc.createAnswer(this.setLocalAndSendMessage, null, sdpConstraints);
         }
 

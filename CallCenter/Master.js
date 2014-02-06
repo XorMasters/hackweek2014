@@ -15,10 +15,6 @@ require(
 
     function (modContact, modTransport, modSignaling) {
 
-        var agentDataRef = new Firebase("https://xormastersclient.firebaseio.com");
-        var clientDataRef = new Firebase("https://blazing-fire-5145.firebaseio.com");
-        var signaling = new modSignaling.Signaling(agentDataRef, clientDataRef);
-
         var agentSessions = new Array();
 
         function initiateAgentSession(agentContact) {
@@ -28,24 +24,40 @@ require(
             agentSession.on('localCallInfoAvailable', function (localCallInfo) {
                 console.log('Received local call info. Accepting agent request...');
                 var localContact = new modContact.Contact("Master", "Test answer made by Master", localCallInfo);
-                signaling.acceptRequest(agentContact, localContact);
+                signaling.acceptAgentRequest(agentContact, localContact);
             });
+
+            agentSession.on('connected', function () {
+                console.log('Master connected to master session for agent');
+                agentSession.sendData({ message: "Hello from master node" });
+            });
+
+            agentSession.on('data', function (data) {
+                console.log("Received data: " + data);
+            })
 
             agentSessions.push({ sessionId: agentContact.name, session: agentSession });
 
-            agentSession.addTransport("AgentSession" + agentContact.name);
+            agentSession.addTransportWithRemote("AgentSession" + agentContact.name, agentContact.callInfo);
         }
 
-        function hangupAgentSession() {
-            // TODO - for now keep agent sessions around until the page is destroyed.
+        function hangup() {
+            // TODO - for now keep agent sessions around until the page is unloaded.
         }
 
-        agentDataRef.on("child_added", function (snapshot) {
-            var name = snapshot.child('name').val();
-            if (name.indexOf('Agent') == 0) {
-                console.log("Received agent request.");
-                initiateAgentSession(agentContact);
+        function hangupAgentSessions(e) {
+            for (var index = 0; index < agentSessions.length; index++) {
+                agentSessions[index].close();
+                agentSessions[index] = undefined;
             }
+        }
+
+        window.onbeforeunload = hangupAgentSessions;
+
+        var signaling = new modSignaling.createSignalingForMaster();
+        signaling.on("agent_request", function (agentContact) {
+            console.log("Received agent request.");
+            initiateAgentSession(agentContact);
         });
     }
 );
