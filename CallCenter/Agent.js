@@ -35,7 +35,9 @@ require(
                 masterSession.sendData({ message: "Hello from agent " });
             });
 
-            masterSession.on('data', function (data) {
+            masterSession.addTransport("MasterSession");
+            
+            masterSession.transport.on('data', function (data) {
                 console.log("Received data: " + data);
             })
 
@@ -43,8 +45,6 @@ require(
                 console.log("Request accepted by master node.");
                 masterSession.setRemoteCallInfo("MasterSession", masterContact.callInfo);
             });
-
-            masterSession.addTransport("MasterSession");
         }
 
         function hangupMasterSession() {
