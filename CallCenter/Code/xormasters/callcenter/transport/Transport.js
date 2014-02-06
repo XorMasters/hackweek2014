@@ -117,14 +117,14 @@ define(
         };
 
         Session.prototype = {
-            addTransport: function (name) {
+            addTransport: function (name, constraints) {
                 this.transport = new Transport(name, this);
-                this.transport.start();
+                this.transport.start(constraints);
             },
 
-            addTransportWithRemote: function (name, remoteCallInfo) {
+            addTransportWithRemote: function (name, remoteCallInfo, constraints) {
                 this.transport = new Transport(name, this);
-                this.transport.accept(remoteCallInfo);
+                this.transport.accept(remoteCallInfo, constraints);
             },
 
             removeTransport: function (name) {
@@ -150,20 +150,28 @@ define(
         }
 
         Transport.prototype = {
-            start: function () {
+            start: function (constraints) {
                 console.log('Transport ' + this.name + ' starting call');
                 this.sendMessage('got user media');
                 this.setChannelReady(true);
                 this.setInitiator(true);
-                this.maybeStart();
+                if(constraints == null || !(constraints.audio || constraints.video)) {
+                  this.maybeStart();
+                } else {
+                  getUserMedia(constraints, this.handleUserMedia, this.handleUserMediaError);
+                }
             },
 
-            accept: function (remoteCallInfo) {
+            accept: function (remoteCallInfo, constraints) {
                 console.log('Transport ' + this.name + ' accepting call');
                 this.setChannelReady(true);
                 this.setInitiator(false);
                 this.setRemoteCallInfo(remoteCallInfo);
-                this.maybeStart();
+                if(constraints == null || !(constraints.audio || constraints.video)) {
+                  this.maybeStart();
+                } else {
+                  getUserMedia(constraints, this.handleUserMedia, this.handleUserMediaError);
+                }
             },
 
             stop: function () {
@@ -183,7 +191,7 @@ define(
             setChannelReady: function (ready) {
                 this.isChannelReady = ready;
             },
-
+       
             addLocalCandidate: function (candidate) {
                 console.log('Adding local candidate to transport ' + this.name);
                 this.localCallInfo.iceCandidates.push(candidate);
@@ -303,6 +311,9 @@ define(
                 return;
             }
 
+            this.pc.onaddstream = this.handleRemoteStreamAdded;
+            this.pc.onremovestream = this.handleRemoteStreamRemoved;
+  
             if (this.isInitiator) {
                 try {
                     // Reliable Data Channels not yet supported in Chrome
@@ -382,7 +393,29 @@ define(
                 thi$.pc.setLocalDescription(sessionDescription);
                 thi$.setLocalDescription(sessionDescription);
                 thi$.sendMessage(sessionDescription);
-
+            }
+       
+            this.handleUserMedia = function(stream) {
+              thi$.localstream = stream;
+              thi$.pc.addStream(stream);
+              thi$.emit('localStreamAdded', stream);
+              thi$.maybeStart();
+            }
+            
+            this.handleUserMediaError = function(error) {
+              console.error( "getUserMedia error: ", error );
+            }
+            
+            this.handleRemoteStreamAdded = function(event) {
+              console.log("Remote stream added");
+              thi$.remoteStream = event.stream
+              thi$.emit('remoteStreamAdded', event.stream);
+            }
+            
+            this.handleRemoteStreamRemoved = function(event) {
+              console.log( "Remote stream removed" );
+              thi$.remoteStream = undefined;
+              thi$.emit('remoteStreamRemoved');
             }
         }
 
