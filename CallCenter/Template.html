@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta name='description' content='Master' />
+    <meta name='viewport' content='width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1'>
+
+    <base target='_blank'>
+
+    <title>Master Agent</title>
+
+    <!-- <link rel='stylesheet' href='css/main.css' /> -->
+
+</head>
+    <!--script src="https://cdn.firebase.com/v0/firebase.js"></script>
+    <script src="./Lib/require.js"></script>
+    <script src="Master.js"></script-->
+    <script>
+    var populate = function() {
+      var entries = [
+        { name: "Allan Knight", summary: "Can't figure out 11b ^ 11b",
+          status: "Taken", time: "12:15 PM", candidates: [{}, {}],
+          description: {sdp: "", type: "offer"}
+        },
+        
+        { name: "Sagar Joglekar", summary: "What's Xor?",
+          status: "Waiting", time: "12:20 PM", candidates: [{}, {}],
+          description: {sdp: "", type: "offer"}
+        },
+        
+        { name: "Stanislav Stoyanov", summary: "Where am I?",
+          status: "Waiting", time: "12:25 PM", candidates: [{}, {}],
+          description: {sdp: "", type: "offer"}
+        }
+      ]
+      
+      var queue = document.getElementById("queue-entries");
+      for( var idx = 0; idx < entries.length; ++idx ) {
+        var  newDiv = document.createElement('div');
+        
+        var status = entries[idx].status.toLowerCase();
+        newDiv.setAttribute('class', 'queue-entry-' + status);
+        newDiv.setAttribute('id', 'entry' + idx );
+        
+        if(status === 'waiting') {
+          newDiv.setAttribute('onmousedown', 'entryDown("entry' + idx + '")');
+          newDiv.setAttribute('onmouseup', 'entryUp("entry' + idx + '", true)');
+          newDiv.setAttribute('onmouseout', 'entryUp("entry' + idx + '", false)');
+        }
+        
+        var nameDiv = document.createElement('div')
+        nameDiv.setAttribute('class', 'queue-entry-name');
+        nameDiv.innerHTML = "Name: " + entries[idx].name;
+        newDiv.appendChild(nameDiv);
+        
+        var summDiv = document.createElement('div')
+        summDiv.setAttribute('class', 'queue-entry-summary');
+        summDiv.innerHTML = "Summary: " + entries[idx].summary;
+        newDiv.appendChild(summDiv);
+        
+        var statDiv = document.createElement('div')
+        statDiv.setAttribute('class', 'queue-entry-status');
+        statDiv.innerHTML = "Status: " + entries[idx].status;
+        newDiv.appendChild(statDiv);
+        
+        var timeDiv = document.createElement('div')
+        timeDiv.setAttribute('class', 'queue-entry-time');
+        timeDiv.innerHTML = "Name: " + entries[idx].time;
+        newDiv.appendChild(timeDiv);
+        
+        var jsonDiv = document.createElement('div')
+        jsonDiv.setAttribute('class', 'queue-entry-json');
+        jsonDiv.innerHTML = JSON.stringify(entries[idx]);
+        newDiv.appendChild(jsonDiv);
+        
+        queue.appendChild(newDiv);
+      }
+    }
+    
+      var entryDown = function(id) {
+        var entry = document.getElementById(id);
+        entry.style.boxShadow = "0px 0px 0px #888888";
+      }
+    
+      var entryUp = function(id, clicked) {
+        var entry = document.getElementById(id);
+        entry.style.boxShadow = "1px 1px 5px #888888";
+        if( clicked ) {
+          console.log("Clicked");
+          console.log(entry.lastChild.innerHTML);
+        }
+      }
+    </script>
+  <style>
+  html, body{
+    height: 99%;
+  }
+  
+  #main {
+    border: 1px dotted black;
+    height: 98%;
+  }
+  
+  #queue {
+    width: 300px;
+    background-color: #CEFFFF;
+    vertical-align: top;
+    text-align: center;
+  }
+  
+  #agent, #client {
+    vertical-align: top;
+  }
+  
+  #copyright {
+    height: 1em;
+    text-align: center;
+    font-style: italic;
+    font-size: 0.725em;
+    font-family: sans-serif;
+    margin-top: 0.25em;
+  }
+  
+  img.silhouette {
+    width: 50%;
+    display: block;
+    margin-top: 1em;
+    margin-left: auto;
+    margin-right: auto
+  }
+  
+  .title {
+    padding-top: 1em;
+    margin-left: auto;
+    margin-right: auto;
+    width: 3em
+  }
+  
+  .queue-entry-waiting {
+    margin-top: 0.35em;
+    margin-right: 0.5em;
+    margin-left: 0.5em;
+    padding: 0.25em;
+    border: 2px solid green;
+    background-color: white;
+    box-shadow: 1px 1px 5px #888888;
+    border-radius: 10px;
+  }
+  
+  .queue-entry-taken {
+    margin-top: 0.35em;
+    margin-right: 0.5em;
+    margin-left: 0.5em;
+    padding: 0.25em;
+    border: 2px solid red;
+    background-color: white;
+    box-shadow: 1px 1px 5px #888888;
+    border-radius: 10px;
+  }
+  
+  .queue-entry-json {
+    visibility: hidden;
+    height: 0em;
+  }
+  
+  .header {
+    margin-top: 1em;
+    margin-bottom: 0.65em;
+    color: darkgray;
+  }
+  </style>
+<body onload='populate();'>
+
+<table id='main'>
+  <tr>
+    <td id='queue'>
+      <div class='header'>Call Queue</div>
+      <div id="queue-entries"></div>
+    </td>
+    
+    <td id='agent' >
+      <img class='silhouette' src='Images/silhouette.png'/>
+      <div class='title'>Agent</div>
+    </td>
+    
+    <td id='client'>
+      <img class='silhouette' src='Images/silhouette.png'>
+      <div class='title'>Client</div>
+    </td>
+  </tr>
+</table>
+
+<div id='copyright'>&copy Copyright 2014. All Righs Reserved. Xor Masters: Mastering Xor Since Last Week</div>
+
+</body>
+</html>
+
+
