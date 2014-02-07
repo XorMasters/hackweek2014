@@ -464,8 +464,10 @@ define(
        
             this.handleUserMedia = function(stream) {
               console.log( "Local stream added");
-              thi$.localstream = stream;
+              thi$.localStream = stream;
               thi$.pc.addStream(stream);
+
+              console.log('Transport: handleUserMedia emits local stream added');
               thi$.emit('localStreamAdded', stream);
               thi$.maybeStart();
             }
@@ -478,7 +480,11 @@ define(
               console.log("Remote stream added");
               thi$.remoteStream = event.stream
               thi$.emit('remoteStreamAdded', event.stream);
-              thi$.emit('localStreamAdded', this.localStream);
+
+              //if (thi$.localStream != undefined) {
+              //    console.log('Transport: handleRemoteStreamAdded emits local stream added');
+              //    thi$.emit('localStreamAdded', thi$.localStream);
+              //}
             }
             
             this.handleRemoteStreamRemoved = function(event) {
