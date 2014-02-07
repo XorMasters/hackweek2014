@@ -16,7 +16,6 @@
 
   <style>
   img.silhouette {
-    width: 50%;
     display: block;
     margin-top: 1em;
     margin-left: auto;
@@ -48,9 +47,9 @@
 
 <div id='support'>
   <div align=center>Confused? Get help online.</div>
-    <div id="videoDiv">
-        <img class='silhouette' id='image' src='Images/support.jpg' style="display:block"/>
-        <video id="video" autoplay muted style="display:none" width="200"/>
+    <div id="videoDiv" align='center'>
+        <img class='silhouette' id='image' src='Images/support.jpg' style="display:block" width='50%' />
+        <video class='silhouette' id="video" autoplay muted style="display:none" width="250"/>
     </div>
   <table>
     <tr>
@@ -149,7 +148,7 @@ Nunc blandit mauris eu viverra elementum. Nam pellentesque arcu in diam sagittis
             var imageElement = document.getElementById("image");
 
             videoElement.setAttribute("style", "display:block;");
-            imageElement.setAttribute("style", "display:none");
+            imageElement.setAttribute("style", "display:none;");
 
             videoElement.src = URL.createObjectURL(stream);
 

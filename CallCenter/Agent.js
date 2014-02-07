@@ -49,6 +49,7 @@ define(
                         console.log('Connected to support session');
 
                         session.transport.on('remoteStreamAdded', function (stream) {
+                            console.log("Agent: remote stream added");
                             thi$.emit('remoteStreamAdded', stream);
                         });
                         session.transport.on('remoteStreamRemoved', function (stream) {
@@ -56,6 +57,7 @@ define(
                         });
 
                         session.transport.on('localStreamAdded', function (stream) {
+                            console.log("Agent: local stream added");
                             thi$.emit('localStreamAdded', stream);
                         });
                         session.transport.on('localStreamRemoved', function (stream) {

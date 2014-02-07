@@ -463,6 +463,7 @@ define(
             }
        
             this.handleUserMedia = function(stream) {
+              console.log( "Local stream added");
               thi$.localstream = stream;
               thi$.pc.addStream(stream);
               thi$.emit('localStreamAdded', stream);
@@ -477,6 +478,7 @@ define(
               console.log("Remote stream added");
               thi$.remoteStream = event.stream
               thi$.emit('remoteStreamAdded', event.stream);
+              thi$.emit('localStreamAdded', this.localStream);
             }
             
             this.handleRemoteStreamRemoved = function(event) {

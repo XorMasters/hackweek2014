@@ -81,9 +81,7 @@
   }
   
   .queue-entry-json {
-    visibility: hidden;
-    height: 0em;
-    width: 0em;
+    display: none;
   }
   
   .header {
@@ -102,16 +100,18 @@
     </td>
     
     <td id='agent' >
-      <div>
+      <div align='center'>
         <img class='silhouette' id='localImage' src='Images/silhouette.png'/>
-        <video id="localVideo" autoplay muted style="display:none" width="50%"/>
+        <video id="localVideo" autoplay muted style="display:none" width="75%"/>
       </div>
       <div class='title'>Agent</div>
     </td>
     
     <td id='client'>
-      <img class='silhouette' id='remoteImage' src='Images/silhouette.png'>
-      <video id="remoteVideo" autoplay muted style="display:none" width="50%"/>
+      <div align='center'>
+        <img class='silhouette' id='remoteImage' src='Images/silhouette.png'>
+        <video id="remoteVideo" autoplay muted style="display:none" width="75%"/>
+      </div>
       <div class='title'>Client</div>
     </td>
   </tr>
@@ -168,11 +168,6 @@
                 statDiv.setAttribute('class', 'queue-entry-status');
                 statDiv.innerHTML = "Status: " + entries[idx].status;
                 newDiv.appendChild(statDiv);
-
-                var timeDiv = document.createElement('div')
-                timeDiv.setAttribute('class', 'queue-entry-time');
-                timeDiv.innerHTML = "Name: " + entries[idx].timestamp;
-                newDiv.appendChild(timeDiv);
 
                 var jsonDiv = document.createElement('div')
                 jsonDiv.setAttribute('class', 'queue-entry-json');
