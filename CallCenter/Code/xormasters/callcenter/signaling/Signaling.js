@@ -11,7 +11,7 @@ define(
         var AgentSignaling = function (isMaster, localDestination) {
 
             //Sagar's Firebase
-            this.agentDataRef = new Firebase("https://xormastersclient.firebaseio.com");
+            this.agentDataRef = new Firebase("https://blazing-fire-5145.firebaseio.com");
             //Stan's Firebase
             //this.agentDataRef = new Firebase("https://resplendent-fire-4441.firebaseio.com/");
             this.isMaster = isMaster;
@@ -44,7 +44,7 @@ define(
         AgentSignaling.prototype = {
 
             postAgentRequest: function (agentContact) {
-
+                console.log('Signaling: postAgentRequest' + agentContact);
                 var request = {
                     source: agentContact,
                     destination: masterDestination,
@@ -55,7 +55,7 @@ define(
             },
 
             acceptAgentRequest: function (agentContact, masterContact) {
-
+                console.log('Signaling: acceptAgentRequest' + agentContact);
                 var request = {
                     source: masterContact,
                     destination: agentContact.name,
@@ -70,17 +70,79 @@ define(
 
 //==================================================================================================
 // Client <-> Master Signaling
-        var ClientSignaling = function () {
+        var ClientSignaling = function (mode, localDestination) {
 
-            var clientDataRef = new Firebase("https://blazing-fire-5145.firebaseio.com");
+            this.mode = mode;
+            this.localDestination = localDestination;
+            this.clientDataRef = new Firebase("https://xormastersclient.firebaseio.com");
+
+            var thi$ = this;
+
+            this.clientDataRef.on("child_added", function (snapshot) {
+                var destination = snapshot.child('destination').val();
+
+                if (thi$.mode === 'master') {
+                    var clientContact = snapshot.child('source').val();
+                    console.log('ClientSignaling: Received child_added for destination: ', destination, ' source ', clientContact);
+                    if ((destination === localDestination)
+                            && (clientContact.name.indexOf('Client') == 0)) {
+
+                        var supportRequest = {
+                            status : 'waiting',
+                            source: clientContact,
+                            content: snapshot.child('content').val(),
+                            timestamp: snapshot.child('timestamp').val(),
+                        };
+
+                        thi$.emit('support_request', supportRequest);
+                    }
+                } else if (mode === 'client') {
+                    var agentContact = snapshot.child('source').val();
+                    var destination = snapshot.child('destination').val();
+                    console.log('ClientSignaling: Received child_added for destination: ', destination, ' source ', agentContact);
+                    if ((destination === localDestination)
+                            && (agentContact.name.indexOf('Agent') == 0)) {
+
+                        var supportRequest = {
+                            source: agentContact,
+                            destination: destination,
+                            content: snapshot.child('content').val(),
+                            timestamp: snapshot.child('timestamp').val(),
+                        };
+
+                        thi$.emit('request_accepted', supportRequest);
+                    }
+                    // TODO: How about multiple agents at the same time?
+                    // snapshot.remove();
+                }
+            });
         };
 
         ClientSignaling.prototype = {
-            postClientRequest : function(clientContact) {
-                ClientDataref.push(request);
+            postClientRequest : function(clientSupportRequest) {
+
+                console.log('Signaling: postClientRequest' + clientSupportRequest);
+                var request = {
+                    source: clientSupportRequest.contact,
+                    content : clientSupportRequest.content,
+                    destination: masterDestination,
+                    timestamp: new Date().getTime()
+                }
+
+                this.clientDataRef.push(request);
             },
         
-            acceptClientRequest: function (clientContact, agentContact) {
+            acceptClientRequest: function (clientSupportRequest, agentContact) {
+
+                console.log('Signaling: acceptAgentRequest' + agentContact);
+                var request = {
+                    source: agentContact,
+                    content: clientSupportRequest.content,
+                    destination: clientSupportRequest.source.name,
+                    timestamp: new Date().getTime()
+                }
+
+                this.clientDataRef.push(request);
             }
         }
         
@@ -96,11 +158,26 @@ define(
             return new AgentSignaling(true, masterDestination);
         }
 
+        function createClientSignalingForMaster() {
+            return new ClientSignaling('master', masterDestination);
+        }
+
+        function createClientSignalingForAgent(agentName) {
+            return new ClientSignaling('agent', agentName);
+        }
+
+        function createClientSignalingForClient(clientName) {
+            return new ClientSignaling('client', clientName);
+        }
+
 //==================================================================================================
 // Exports
         return {
             createSignalingForAgent: createSignalingForAgent,
-            createSignalingForMaster: createSignalingForMaster
+            createSignalingForMaster: createSignalingForMaster,
+            createClientSignalingForMaster: createClientSignalingForMaster,
+            createClientSignalingForAgent: createClientSignalingForAgent,
+            createClientSignalingForClient: createClientSignalingForClient
         }
     }
 );

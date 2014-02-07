@@ -7,17 +7,13 @@
 
     <base target='_blank'>
 
-    <title>Master Agent</title>
+    <title>Support Client</title>
 
     <!-- <link rel='stylesheet' href='css/main.css' /> -->
 
 </head>
-    <!--script src="https://cdn.firebase.com/v0/firebase.js"></script>
-    <script src="./Lib/require.js"></script>
-    <script src="Master.js"></script-->
-    <script>
 
-    </script>
+
   <style>
   img.silhouette {
     width: 50%;
@@ -52,18 +48,21 @@
 
 <div id='support'>
   <div align=center>Confused? Get help online.</div>
-  <img class='silhouette' src='Images/support.jpg'/>
+    <div id="videoDiv">
+        <img class='silhouette' id='image' src='Images/support.jpg' style="display:block"/>
+        <video id="video" autoplay muted style="display:none" width="200"/>
+    </div>
   <table>
     <tr>
       <td>Name:</td>
-      <td><input type='text' id='name' width='100%'></td>
+      <td><input type='text' id='name' width='100%' value="Why Asker"></td>
     </tr>
     <tr>
       <td>Description:</td>
-      <td><textarea id='desc'></textarea></div>
+      <td><textarea id='desc'>What is XOR?</textarea></div>
     </tr>
     <tr>
-      <td colspan='2' align='center'><input type='button' id='start' value='Contact Support'></td>
+      <td colspan='2' align='center'><button id='start'>Contact Support</button></td>
     </tr>
   </table>
 </div>
@@ -113,6 +112,96 @@ Nunc blandit mauris eu viverra elementum. Nam pellentesque arcu in diam sagittis
 <div id='copyright'>&copy Copyright 2014. All Righs Reserved. Xor Masters: Mastering Xor Since Last Week</div>
 
 </body>
+
+<script src="https://cdn.firebase.com/v0/firebase.js"></script>
+<script src="Lib/require.js"></script>
+<script>
+    var modClient = undefined;
+    var supportClient = undefined;
+
+    window.onbeforeunload = function (e) {
+        if (supportClient != undefined) {
+            supportClient.hangup();
+            supportClient = undefined;
+        }
+    };
+
+    require(["Client"], function (modClientArg) {
+
+        modClient = modClientArg;
+
+        //This function will be called when all the dependencies
+        //listed above are loaded. Note that this function could
+        //be called before the page is loaded.
+        //This callback is optional.
+    });
+
+    function requestSupport(supportContent) {
+        if (supportClient != undefined) {
+            console.log('Support session already in progress.');
+            return;
+        }
+
+        supportClient = modClient.createClient(supportContent);
+
+        supportClient.on('remoteStreamAdded', function (stream) {
+            var videoElement = document.getElementById("video");
+            var imageElement = document.getElementById("image");
+
+            videoElement.setAttribute("style", "display:block;");
+            imageElement.setAttribute("style", "display:none");
+
+            videoElement.src = URL.createObjectURL(stream);
+
+            //videoElement.removeChild(videoElement.childNodes[0]);
+
+            //var video = document.createElement('video');
+            //video.setAttribute('autoplay');
+            //video.setAttribute('muted');
+            //video.src = URL.createObjectURL(stream);
+            //videoElement.appendChild(video);
+        });
+
+        supportClient.on('remoteStreamRemoved', function (stream) {
+
+            var videoElement = document.getElementById("video");
+            var imageElement = document.getElementById("image");
+
+            videoElement.setAttribute("style", "display:none");
+            imageElement.setAttribute("style", "display:block");
+
+            videoElement.src = null;
+
+            //var videoElement = document.getElementById("videoDiv");
+            //videoElement.removeChild(videoElement.childNodes[0]);
+
+            //var image = document.createElement('img');
+            //image.setAttribute('class', 'silhouette');
+            //image.setAttribute('id', 'image');
+            //image.setAttribute('src', 'Images/support.jpg');
+            //videoElement.appendChild(image);
+        });
+
+        supportClient.requestSupport();
+    }
+
+    function onSupportRequestedAction() {
+        var clientName = document.getElementById("name").value;
+        var description = document.getElementById("desc").value;
+
+        var supportContent = {
+            name: clientName,
+            summary: description
+        };
+
+        requestSupport(supportContent);
+    }
+
+    var requestButton = document.getElementById("start");
+    requestButton.onclick = onSupportRequestedAction;
+
+    </script>
+
 </html>
 
 

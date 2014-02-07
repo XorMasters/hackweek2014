@@ -88,6 +88,11 @@ define(
             };
             this.remoteCallInfo = null;
             this.inConnection = false;
+            this.receiveBuffer = "";
+            this.sendBuffer = new Array();
+            this.dataSent = 0;
+            this.chunkSize = 1000;
+            this.intervalID = 0;
             var thi$ = this;
             
       
@@ -163,14 +168,21 @@ define(
             },
 
             accept: function (remoteCallInfo, constraints) {
+                var thi$ = this;
                 console.log('Transport ' + this.name + ' accepting call');
                 this.setChannelReady(true);
                 this.setInitiator(false);
-                this.setRemoteCallInfo(remoteCallInfo);
-                if(constraints == null || !(constraints.audio || constraints.video)) {
+                if (constraints == null || !(constraints.audio || constraints.video)) {
+                  this.setRemoteCallInfo(remoteCallInfo);
                   this.maybeStart();
                 } else {
-                  getUserMedia(constraints, this.handleUserMedia, this.handleUserMediaError);
+                    getUserMedia(
+                        constraints,
+                        function (stream) {
+                            thi$.setRemoteCallInfo(remoteCallInfo);
+                            thi$.handleUserMedia(stream);
+                        },
+                        this.handleUserMediaError);
                 }
             },
 
@@ -243,12 +255,12 @@ define(
 
             checkAndConnect: function () {
 
-                console.log(
-                        'checkAndConnect ',
-                        'this.inConnection', this.inConnection , ' ',
-                        'this.localCallInfo.sessionDescription != null=', this.localCallInfo.sessionDescription != null , ' ',
-                        'this.localCallInfo.hasAllCandidates=', this.localCallInfo.hasAllCandidates , ' ',
-                        'this.localCallInfo.hasAllCandidates=', this.remoteCallInfo != null);
+                //console.log(
+                //        'checkAndConnect ',
+                //        'this.inConnection', this.inConnection , ' ',
+                //        'this.localCallInfo.sessionDescription != null=', this.localCallInfo.sessionDescription != null , ' ',
+                //        'this.localCallInfo.hasAllCandidates=', this.localCallInfo.hasAllCandidates , ' ',
+                //        'this.localCallInfo.hasAllCandidates=', this.remoteCallInfo != null);
 
                 if (!this.inConnection && this.localCallInfo.sessionDescription != null
                         && this.localCallInfo.hasAllCandidates
@@ -334,8 +346,41 @@ define(
         }
 
         Transport.prototype.sendData = function (data) {
-            this.sendChannel.send(data);
-            trace('Sent data: ' + data);
+
+            this.sendBuffer.push(data);
+            if (this.intervalID != 0) {
+                return;
+            }
+
+            var thi$ = this;
+            
+            this.intervalID = setInterval(function () {
+                var slideEndIndex = thi$.dataSent + thi$.chunkSize;
+                var isEnd = false;
+                if (slideEndIndex > thi$.sendBuffer[0].length) {
+                    slideEndIndex = thi$.sendBuffer[0].length;
+                    isEnd = true;
+                }
+                var chunk = {
+                    data: thi$.sendBuffer[0].slice(thi$.dataSent, slideEndIndex),
+                    final: isEnd
+                }
+                thi$.sendChannel.send(JSON.stringify(chunk));
+
+                if (isEnd) {
+                    thi$.dataSent = 0;
+                    thi$.sendBuffer.shift();
+                } else {
+                    thi$.dataSent = slideEndIndex;
+                }
+                if (thi$.sendBuffer.length == 0) {
+                    clearInterval(thi$.intervalID);
+                    thi$.intervalID = 0;
+                }
+            }, 10);
+
+            //this.sendChannel.send(data);
+            //trace('Sent data: ' + data);
         }
 
         Transport.prototype.registerListeners = function () {
@@ -349,20 +394,32 @@ define(
             }
 
             this.handleMessage = function (event) {
-                trace('Received data channel message: ' + event.data);
-                thi$.emit('data', event.data);
+                //trace('Received data channel message: ' + event.data);
+
+                var chunk = JSON.parse(event.data);
+
+                if (chunk.final) {
+                    thi$.emit('data', thi$.receiveBuffer.concat(chunk.data));
+                    thi$.receiveBuffer = "";
+                } else {
+                    thi$.receiveBuffer = thi$.receiveBuffer.concat(chunk.data);
+                }
+
+                //thi$.emit('data', event.data);
             }
 
             this.handleSendChannelStateChange = function () {
                 var readyState = thi$.sendChannel.readyState;
                 trace('Send channel state is: ' + readyState);
                 thi$.session.emit(readyState == "open" ? 'connected' : 'disconnected');
+                console.log(thi$.pc);
             }
 
             this.handleReceiveChannelStateChange = function () {
                 var readyState = thi$.sendChannel.readyState;
                 trace('Receive channel state is: ' + readyState);
                 thi$.session.emit(readyState == "open" ? 'connected' : 'disconnected');
+                console.log(thi$.pc);
             }
 
             this.handleIceCandidate = function (event) {
@@ -388,7 +445,17 @@ define(
                 thi$.inConnection = false;
             }
 
+            this.transformOutgoingSdp = function (sdp) {
+                var split = sdp.split('b=AS:30');
+                if (split.length > 1)
+                    var newSDP = split[0] + 'b=AS:1638400' + split[1];
+                else
+                    newSDP = sdp;
+                return newSDP;
+            }
+
             this.setLocalAndSendMessage = function (sessionDescription) {
+                sessionDescription.sdp = thi$.transformOutgoingSdp(sessionDescription.sdp);
                 console.log('Set Local send message \n');
                 thi$.pc.setLocalDescription(sessionDescription);
                 thi$.setLocalDescription(sessionDescription);

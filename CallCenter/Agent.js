@@ -9,53 +9,113 @@ require.config({
 });
 
 // TODO: get unique agent name for each agent
-var agentName = "Agent";
+var kAgentName = "Agent";
 
-require(
-    ["xormasters/callcenter/Contact",
-     "xormasters/callcenter/transport/Transport",
-     "xormasters/callcenter/signaling/Signaling"],
+define(
+    ["xormasters/callcenter/signaling/AgentNegotiator",
+        "xormasters/callcenter/signaling/AgentSupportNegotiator",
+        "xormasters/callcenter/queue/CallQueue",
+        "EventEmitter"],
 
-    function (modContact, modTransport, modSignaling) {
+    function (modNegotiator, modSupportNegotiator, modCallQueue, EventEmitter) {
 
-        var signaling = new modSignaling.createSignalingForAgent(agentName);
-        var masterSession = new modTransport.Session();
+        var Agent = function (agentName) {
+            this.agentName = agentName;
+            this.masterNegotiator = modNegotiator.createAgentNegotiator('call_queue', agentName);
+            this.supportNegotiator = undefined;
+            this.callQueue = undefined;
+            this.supportSession = undefined;
 
-        function initiateMasterSession() {
+            var thi$ = this;
 
-            masterSession.on('localCallInfoAvailable', function (localCallInfo) {
-                console.log('Received local call info. Posting agent request...');
-                var localAgentContact =
-                        new modContact.Contact(agentName, "Master session request from agent " + agentName, localCallInfo);
-                signaling.postAgentRequest(localAgentContact);
+            this.masterNegotiator.on('connected', function (session) {
+
+                thi$.callQueue = new modCallQueue.CallQueue(false, session);
+
+                thi$.callQueue.on('takenResult', function (msgPayload) {
+
+                    if (msgPayload == null) {
+                        console.log('Request not accessible.');
+                        return;
+                    }
+
+                    console.log('Granted permission to take request: ' + msgPayload);
+
+                    thi$.supportNegotiator = modSupportNegotiator.createAgentSupportNegotiator(msgPayload, 'support', thi$.agentName);
+
+                    thi$.supportNegotiator.on('connected', function (session) {
+                        thi$.supportSession = session;
+                        // TODO: subscribe to all session events to make the streams available in HTML
+                        console.log('Connected to support session');
+
+                        session.transport.on('remoteStreamAdded', function (stream) {
+                            thi$.emit('remoteStreamAdded', stream);
+                        });
+                        session.transport.on('remoteStreamRemoved', function (stream) {
+                            thi$.emit('remoteStreamRemoved', stream);
+                        });
+
+                        session.transport.on('localStreamAdded', function (stream) {
+                            thi$.emit('localStreamAdded', stream);
+                        });
+                        session.transport.on('localStreamRemoved', function (stream) {
+                            thi$.emit('localStreamRemoved', stream);
+                        });
+
+                        if (session.transport.localStream != undefined) {
+                            thi$.emit('localStreamAdded', session.transport.localStream);
+                        }
+
+                        if (session.transport.remoteStream != undefined) {
+                            thi$.emit('remoteStreamAdded', session.transport.remoteStream);
+                        }
+                    });
+                    thi$.supportNegotiator.connect();
+                });
+
+                thi$.callQueue.on('update', function (queue) {
+                    console.log('Call queue updated. New queue: ' + queue);
+                    thi$.emit('queue_updated', queue);
+                });
+
+                thi$.callQueue.start();
             });
+        };
 
-            masterSession.on('connected', function () {
-                console.log('Agent connected to master session');
-                masterSession.sendData({ message: "Hello from agent " });
-            });
+        Agent.prototype = {
 
-            masterSession.addTransport("MasterSession");
-            
-            masterSession.transport.on('data', function (data) {
-                console.log("Received data: " + data);
-            })
+            connectToMaster: function () {
+                this.masterNegotiator.connect();
+            },
 
-            signaling.on('master_accepted', function (masterContact) {
-                console.log("Request accepted by master node.");
-                masterSession.setRemoteCallInfo("MasterSession", masterContact.callInfo);
-            });
-        }
+            hangupSupportSession: function () {
+                if (this.supportSession != undefined) {
+                    this.supportSession.close();
+                    this.supportSession = undefined;
+                    this.supportNegotiator = undefined;
+                }
+            },
 
-        function hangupMasterSession() {
-            if (masterSession != undefined) {
-                masterSession.removeTransport("MasterSession");
-                masterSession = undefined;
+            hangup: function () {
+                this.hangupSupportSession();
+                if (this.callQueue != undefined) {
+                    this.callQueue.stop();
+                    this.callQueue = undefined;
+                }
+                this.masterNegotiator = undefined;
+            },
+
+            acceptRequest: function (supportRequest) {
+                this.callQueue.take(supportRequest);
             }
-        }
+        };
 
-        initiateMasterSession();
+        Agent.prototype.__proto__ = EventEmitter.prototype;
 
-        //setTimeout(hangupMasterSession, 10000);
+        return {
+            Agent: Agent
+        };
+        //Agent = _Agent;
+        //supportAgent = new _Agent(kAgentName);
     }
 );

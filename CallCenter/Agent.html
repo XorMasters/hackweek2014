@@ -2,26 +2,263 @@
 <html>
 <head>
 
-    <meta name='description' content='Agent' />
+    <meta name='description' content='Master' />
     <meta name='viewport' content='width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1'>
 
     <base target='_blank'>
 
-    <title>Agent Test</title>
+    <title>Support Agent</title>
 
     <!-- <link rel='stylesheet' href='css/main.css' /> -->
 
 </head>
-    <script src="https://cdn.firebase.com/v0/firebase.js"></script>
-    <script src="./Lib/require.js"></script>
-    <script src="Agent.js"></script>
 
+  <style>
+  html, body{
+    height: 99%;
+  }
+  
+  #main {
+    border: 1px dotted black;
+    height: 98%;
+  }
+  
+  #queue {
+    width: 300px;
+    background-color: #CEFFFF;
+    vertical-align: top;
+    text-align: center;
+  }
+  
+  #agent, #client {
+    vertical-align: top;
+  }
+  
+  #copyright {
+    height: 1em;
+    text-align: center;
+    font-style: italic;
+    font-size: 0.725em;
+    font-family: sans-serif;
+    margin-top: 0.25em;
+  }
+  
+  img.silhouette {
+    width: 50%;
+    display: block;
+    margin-top: 1em;
+    margin-left: auto;
+    margin-right: auto
+  }
+  
+  .title {
+    padding-top: 1em;
+    margin-left: auto;
+    margin-right: auto;
+    width: 3em
+  }
+  
+  .queue-entry-waiting {
+    margin-top: 0.35em;
+    margin-right: 0.5em;
+    margin-left: 0.5em;
+    padding: 0.25em;
+    border: 2px solid green;
+    background-color: white;
+    box-shadow: 1px 1px 5px #888888;
+    border-radius: 10px;
+  }
+  
+  .queue-entry-taken {
+    margin-top: 0.35em;
+    margin-right: 0.5em;
+    margin-left: 0.5em;
+    padding: 0.25em;
+    border: 2px solid red;
+    background-color: white;
+    box-shadow: 1px 1px 5px #888888;
+    border-radius: 10px;
+  }
+  
+  .queue-entry-json {
+    visibility: hidden;
+    height: 0em;
+    width: 0em;
+  }
+  
+  .header {
+    margin-top: 1em;
+    margin-bottom: 0.65em;
+    color: darkgray;
+  }
+  </style>
 <body>
-    <script>
-        console.log("Inside HTML");
-    </script>
+
+<table id='main'>
+  <tr>
+    <td id='queue'>
+      <div class='header'>Call Queue</div>
+      <div id="queue-entries"></div>
+    </td>
+    
+    <td id='agent' >
+      <div>
+        <img class='silhouette' id='localImage' src='Images/silhouette.png'/>
+        <video id="localVideo" autoplay muted style="display:none" width="50%"/>
+      </div>
+      <div class='title'>Agent</div>
+    </td>
+    
+    <td id='client'>
+      <img class='silhouette' id='remoteImage' src='Images/silhouette.png'>
+      <video id="remoteVideo" autoplay muted style="display:none" width="50%"/>
+      <div class='title'>Client</div>
+    </td>
+  </tr>
+</table>
+
+<div id='copyright'>&copy Copyright 2014. All Righs Reserved. Xor Masters: Mastering Xor Since Last Week</div>
 
 </body>
+
+<script src="https://cdn.firebase.com/v0/firebase.js"></script>
+    <script src="Lib/require.js"></script>
+    <!--<script src="Agent.js"></script>-->
+
+    <script>
+        var supportAgent = undefined;
+
+        window.onbeforeunload = function (e) {
+            if (supportAgent != undefined) {
+                supportAgent.hangup();
+                supportAgent = undefined;
+            }
+        };
+
+        function populateQueue(entries) {
+
+            var queue = document.getElementById("queue-entries");
+            queue.innerHTML = "";
+            for (var idx = 0; idx < entries.length; ++idx) {
+                var newDiv = document.createElement('div');
+
+                var status = entries[idx].status.toLowerCase();
+                newDiv.setAttribute('class', 'queue-entry-' + status);
+                newDiv.setAttribute('id', 'entry' + idx);
+
+                if (status === 'waiting') {
+                    newDiv.setAttribute('onmousedown', 'entryDown("entry' + idx + '")');
+                    newDiv.setAttribute('onmouseup', 'entryUp("entry' + idx + '", true)');
+                    newDiv.setAttribute('onmouseout', 'entryUp("entry' + idx + '", false)');
+
+                    newDiv.setAttribute('ontouchstart', 'entryDown("entry' + idx + '")', false);
+                }
+
+                var nameDiv = document.createElement('div')
+                nameDiv.setAttribute('class', 'queue-entry-name');
+                nameDiv.innerHTML = "Name: " + entries[idx].content.name;
+                newDiv.appendChild(nameDiv);
+
+                var summDiv = document.createElement('div')
+                summDiv.setAttribute('class', 'queue-entry-summary');
+                summDiv.innerHTML = "Summary: " + entries[idx].content.summary;
+                newDiv.appendChild(summDiv);
+
+                var statDiv = document.createElement('div')
+                statDiv.setAttribute('class', 'queue-entry-status');
+                statDiv.innerHTML = "Status: " + entries[idx].status;
+                newDiv.appendChild(statDiv);
+
+                var timeDiv = document.createElement('div')
+                timeDiv.setAttribute('class', 'queue-entry-time');
+                timeDiv.innerHTML = "Name: " + entries[idx].timestamp;
+                newDiv.appendChild(timeDiv);
+
+                var jsonDiv = document.createElement('div')
+                jsonDiv.setAttribute('class', 'queue-entry-json');
+                jsonDiv.innerHTML = JSON.stringify(entries[idx]);
+                newDiv.appendChild(jsonDiv);
+
+                queue.appendChild(newDiv);
+            }
+        }
+
+        function entryDown(id) {
+            var entry = document.getElementById(id);
+            entry.style.boxShadow = "0px 0px 0px #888888";
+        }
+
+        function entryUp(id, clicked) {
+            var entry = document.getElementById(id);
+            entry.style.boxShadow = "1px 1px 5px #888888";
+            if (clicked) {
+                console.log("Clicked");
+                console.log(entry.lastChild.innerHTML);
+
+                supportAgent.acceptRequest(JSON.parse(entry.lastChild.innerHTML));
+            }
+        }
+
+        function localStramAdded() {
+        }
+
+        require(["Agent"], function (Agent) {
+
+            supportAgent = new Agent.Agent("Agent");
+            supportAgent.connectToMaster();
+            supportAgent.on('queue_updated', populateQueue);
+
+            supportAgent.on('localStreamAdded', function (stream) {
+                var videoElement = document.getElementById("localVideo");
+                var imageElement = document.getElementById("localImage");
+
+                videoElement.setAttribute("style", "display:block;");
+                imageElement.setAttribute("style", "display:none");
+
+                videoElement.src = URL.createObjectURL(stream);
+            });
+
+            supportAgent.on('localStreamRemoved', function (stream) {
+
+                var videoElement = document.getElementById("localVideo");
+                var imageElement = document.getElementById("localImage");
+
+                videoElement.setAttribute("style", "display:none");
+                imageElement.setAttribute("style", "display:block");
+
+                videoElement.src = null;
+            });
+
+            supportAgent.on('remoteStreamAdded', function (stream) {
+                var videoElement = document.getElementById("remoteVideo");
+                var imageElement = document.getElementById("remoteImage");
+
+                videoElement.setAttribute("style", "display:block;");
+                imageElement.setAttribute("style", "display:none");
+
+                videoElement.src = URL.createObjectURL(stream);
+            });
+
+            supportAgent.on('remoteStreamRemoved', function (stream) {
+
+                var videoElement = document.getElementById("remoteVideo");
+                var imageElement = document.getElementById("remoteImage");
+
+                videoElement.setAttribute("style", "display:none");
+                imageElement.setAttribute("style", "display:block");
+
+                videoElement.src = null;
+            });
+
+            //This function will be called when all the dependencies
+            //listed above are loaded. Note that this function could
+            //be called before the page is loaded.
+            //This callback is optional.
+        });
+
+
+    </script>
+
 </html>
 
 

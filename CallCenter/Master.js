@@ -8,56 +8,61 @@ require.config({
     baseUrl: './Code'
 });
 
+var masterNegotiator = undefined;
+var callQueues = new Array();
+var supportRequestSource = undefined;
+
 require(
-    ["xormasters/callcenter/Contact",
-     "xormasters/callcenter/transport/Transport",
-     "xormasters/callcenter/signaling/Signaling"],
+    ["xormasters/callcenter/signaling/MasterNegotiator",
+     "xormasters/callcenter/signaling/Signaling",
+     "xormasters/callcenter/queue/CallQueue"],
 
-    function (modContact, modTransport, modSignaling) {
+    function (modNegotiator, modSignaling, modCallQueue) {
 
-        var agentSessions = new Array();
-
-        function initiateAgentSession(agentContact) {
-
-            var agentSession = new modTransport.Session();
-
-            agentSession.on('localCallInfoAvailable', function (localCallInfo) {
-                console.log('Received local call info. Accepting agent request...');
-                var localContact = new modContact.Contact("Master", "Test answer made by Master", localCallInfo);
-                signaling.acceptAgentRequest(agentContact, localContact);
-            });
-
-            agentSession.on('connected', function () {
-                console.log('Master connected to master session for agent');
-                agentSession.sendData({ message: "Hello from master node" });
-            });
-
-            agentSession.addTransportWithRemote("AgentSession" + agentContact.name, agentContact.callInfo);
-
-            agentSession.transport.on('data', function (data) {
-                console.log("Received data: " + data);
-            })
-
-            agentSessions.push({ sessionId: agentContact.name, session: agentSession });
-        }
-
-        function hangup() {
-            // TODO - for now keep agent sessions around until the page is unloaded.
-        }
-
-        function hangupAgentSessions(e) {
-            for (var index = 0; index < agentSessions.length; index++) {
-                agentSessions[index].close();
-                agentSessions[index] = undefined;
+        masterNegotiator = modNegotiator.createMasterNegotiator('call_queue');
+        supportRequestSource = modSignaling.createClientSignalingForMaster();
+        supportRequestSource.on('support_request', function (supportRequest) {
+            if (callQueues.length > 0 && callQueues[0] != undefined) {
+                console.log('Master adds support request from client ' + supportRequest.source.name + ' to queue');
+                callQueues[0].update(supportRequest);
+            } else {
+                console.log('Master drops support request from client ' + supportRequest.source.name + 'because there is no agent connected');
             }
+        });
+
+        //function updateQueue() {
+        //    var entry = {
+        //        status: 'waiting',
+        //        content: 'My question',
+        //        from: 'client X'
+        //    };
+        //    callQueue.update(entry);
+        //}
+
+        masterNegotiator.on('connected', function (agentSession) {
+
+            callQueue = new modCallQueue.CallQueue(true, agentSession);
+            callQueue.start();
+
+            callQueues.push(callQueue);
+
+            //setTimeout(function () {
+            //    updateQueue();
+            //    setInterval(function () { updateQueue(); }, 1000);
+            //}, 0);
+        })
+
+        function hangup(e) {
+            for (var index = 0; index < callQueues.length; index++) {
+                callQueues[index].stop();
+                callQueues[index] = undefined;
+            }
+            callQueues = undefined;
+            masterNegotiator = undefined;
         }
 
-        window.onbeforeunload = hangupAgentSessions;
+        window.onbeforeunload = hangup;
 
-        var signaling = new modSignaling.createSignalingForMaster();
-        signaling.on("agent_request", function (agentContact) {
-            console.log("Received agent request.");
-            initiateAgentSession(agentContact);
-        });
+        masterNegotiator.connect();
     }
 );
