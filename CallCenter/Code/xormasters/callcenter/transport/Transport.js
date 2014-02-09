@@ -91,7 +91,7 @@ define(
             this.receiveBuffer = "";
             this.sendBuffer = new Array();
             this.dataSent = 0;
-            this.chunkSize = 1000;
+            this.chunkSize = 1024;
             this.intervalID = 0;
             var thi$ = this;
             
@@ -355,6 +355,7 @@ define(
             var thi$ = this;
             
             this.intervalID = setInterval(function () {
+              for(var i = 0; i < 10; i++) {
                 var slideEndIndex = thi$.dataSent + thi$.chunkSize;
                 var isEnd = false;
                 if (slideEndIndex > thi$.sendBuffer[0].length) {
@@ -365,7 +366,8 @@ define(
                     data: thi$.sendBuffer[0].slice(thi$.dataSent, slideEndIndex),
                     final: isEnd
                 }
-                thi$.sendChannel.send(JSON.stringify(chunk));
+                var chunkStr = JSON.stringify(chunk);
+                thi$.sendChannel.send(chunkStr);
 
                 if (isEnd) {
                     thi$.dataSent = 0;
@@ -377,10 +379,8 @@ define(
                     clearInterval(thi$.intervalID);
                     thi$.intervalID = 0;
                 }
+              }
             }, 10);
-
-            //this.sendChannel.send(data);
-            //trace('Sent data: ' + data);
         }
 
         Transport.prototype.registerListeners = function () {
@@ -394,8 +394,6 @@ define(
             }
 
             this.handleMessage = function (event) {
-                //trace('Received data channel message: ' + event.data);
-
                 var chunk = JSON.parse(event.data);
 
                 if (chunk.final) {
@@ -445,17 +443,7 @@ define(
                 thi$.inConnection = false;
             }
 
-            this.transformOutgoingSdp = function (sdp) {
-                var split = sdp.split('b=AS:30');
-                if (split.length > 1)
-                    var newSDP = split[0] + 'b=AS:1638400' + split[1];
-                else
-                    newSDP = sdp;
-                return newSDP;
-            }
-
             this.setLocalAndSendMessage = function (sessionDescription) {
-                sessionDescription.sdp = thi$.transformOutgoingSdp(sessionDescription.sdp);
                 console.log('Set Local send message \n');
                 thi$.pc.setLocalDescription(sessionDescription);
                 thi$.setLocalDescription(sessionDescription);
