@@ -34,6 +34,7 @@ define(
                 this.session.transport.on('data', function (data) {
                     var message = JSON.parse(data);
                     if (message.type === 'update') {
+                        console.log( "payload: ", message.payload);
                         thi$.call_queue = message.payload;
                         thi$.emit('update', thi$.call_queue);
                     } else if (message.type === 'take') {
@@ -80,10 +81,26 @@ define(
             },
 
             sendUpdate: function () {
+                var queue = new Array();
+                for( var i = 0; i < this.call_queue.length; ++i ) {
+                  var entry = this.call_queue[i];
+                  queue.push( { content: {
+                                  name: entry.content.name,
+                                  summary: entry.content.summary
+                                },
+                                source: {
+                                  description: entry.source.description,
+                                  name: entry.source.name
+                                },
+                                status: entry.status,
+                                timestamp: entry.timestamp
+                              });
+                }
+       
                 var message = {
                     type: 'update',
                     from: 'master',
-                    payload: this.call_queue
+                    payload: queue
                 }
 
                 var data = JSON.stringify(message);

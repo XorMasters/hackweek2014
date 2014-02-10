@@ -91,7 +91,7 @@ define(
             this.receiveBuffer = "";
             this.sendBuffer = new Array();
             this.dataSent = 0;
-            this.chunkSize = 1024;
+            this.chunkSize = 1000;
             this.intervalID = 0;
             var thi$ = this;
             
@@ -355,9 +355,13 @@ define(
             var thi$ = this;
             
             this.intervalID = setInterval(function () {
-              for(var i = 0; i < 10; i++) {
+              for(var sending = true; sending; ) {
                 var slideEndIndex = thi$.dataSent + thi$.chunkSize;
                 var isEnd = false;
+                if( thi$.sendBuffer.length <= 0 ) {
+                  break;
+                }
+                
                 if (slideEndIndex > thi$.sendBuffer[0].length) {
                     slideEndIndex = thi$.sendBuffer[0].length;
                     isEnd = true;
@@ -366,9 +370,18 @@ define(
                     data: thi$.sendBuffer[0].slice(thi$.dataSent, slideEndIndex),
                     final: isEnd
                 }
+                
                 var chunkStr = JSON.stringify(chunk);
-                thi$.sendChannel.send(chunkStr);
-
+                trace("Sending chunk of size: " + chunkStr.length);
+                
+                try {
+                  thi$.sendChannel.send(chunkStr);
+                } catch(e) {
+                  console.error(e);
+                  sending = false;
+                  continue;
+                }
+                
                 if (isEnd) {
                     thi$.dataSent = 0;
                     thi$.sendBuffer.shift();
@@ -380,7 +393,7 @@ define(
                     thi$.intervalID = 0;
                 }
               }
-            }, 10);
+            }, 1000);
         }
 
         Transport.prototype.registerListeners = function () {
