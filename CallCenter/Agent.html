@@ -55,7 +55,7 @@
     padding-top: 1em;
     margin-left: auto;
     margin-right: auto;
-    width: 3em
+    width: 6em
   }
   
   .queue-entry-waiting {
@@ -112,147 +112,154 @@
         <img class='silhouette' id='remoteImage' src='Images/silhouette.png'>
         <video id="remoteVideo" autoplay muted style="display:none" width="75%"/>
       </div>
-      <div class='title'>Client</div>
+      <div class='title' id='customer'>Customer</div>
     </td>
   </tr>
 </table>
 
-<div id='copyright'>&copy Copyright 2014. All Righs Reserved. Xor Masters: Mastering Xor Since Last Week</div>
+<div id='copyright'> &copy; Copyright 2014. All Righs Reserved. Xor Masters: Mastering Xor Since Last Week </div>
 
 </body>
 
 <script src="https://cdn.firebase.com/v0/firebase.js"></script>
-    <script src="Lib/require.js"></script>
-    <!--<script src="Agent.js"></script>-->
+<script src="Lib/require.js"></script>
+    
+<script>
+    var supportAgent = undefined;
+    var customerEntry = undefined;
+    
+    window.onbeforeunload = function (e) {
+        if (supportAgent != undefined) {
+            supportAgent.hangup();
+            supportAgent = undefined;
+        }
+    };
 
-    <script>
-        var supportAgent = undefined;
+    function populateQueue(entries) {
 
-        window.onbeforeunload = function (e) {
-            if (supportAgent != undefined) {
-                supportAgent.hangup();
-                supportAgent = undefined;
+        var queue = document.getElementById("queue-entries");
+        queue.innerHTML = "";
+        for (var idx = 0; idx < entries.length; ++idx) {
+            var newDiv = document.createElement('div');
+
+            var status = entries[idx].status.toLowerCase();
+            newDiv.setAttribute('class', 'queue-entry-' + status);
+            newDiv.setAttribute('id', 'entry' + idx);
+
+            if (status === 'waiting') {
+                newDiv.setAttribute('onmousedown', 'entryDown("entry' + idx + '")');
+                newDiv.setAttribute('onmouseup', 'entryUp("entry' + idx + '", true)');
+                newDiv.setAttribute('onmouseout', 'entryUp("entry' + idx + '", false)');
+
+                newDiv.setAttribute('ontouchstart', 'entryDown("entry' + idx + '")', false);
             }
-        };
 
-        function populateQueue(entries) {
+            var nameDiv = document.createElement('div')
+            nameDiv.setAttribute('class', 'queue-entry-name');
+            nameDiv.innerHTML = "Name: " + entries[idx].content.name;
+            newDiv.appendChild(nameDiv);
 
-            var queue = document.getElementById("queue-entries");
-            queue.innerHTML = "";
-            for (var idx = 0; idx < entries.length; ++idx) {
-                var newDiv = document.createElement('div');
+            var summDiv = document.createElement('div')
+            summDiv.setAttribute('class', 'queue-entry-summary');
+            summDiv.innerHTML = "Summary: " + entries[idx].content.summary;
+            newDiv.appendChild(summDiv);
 
-                var status = entries[idx].status.toLowerCase();
-                newDiv.setAttribute('class', 'queue-entry-' + status);
-                newDiv.setAttribute('id', 'entry' + idx);
+            var statDiv = document.createElement('div')
+            statDiv.setAttribute('class', 'queue-entry-status');
+            statDiv.innerHTML = "Status: " + entries[idx].status;
+            newDiv.appendChild(statDiv);
 
-                if (status === 'waiting') {
-                    newDiv.setAttribute('onmousedown', 'entryDown("entry' + idx + '")');
-                    newDiv.setAttribute('onmouseup', 'entryUp("entry' + idx + '", true)');
-                    newDiv.setAttribute('onmouseout', 'entryUp("entry' + idx + '", false)');
-
-                    newDiv.setAttribute('ontouchstart', 'entryDown("entry' + idx + '")', false);
-                }
-
-                var nameDiv = document.createElement('div')
-                nameDiv.setAttribute('class', 'queue-entry-name');
-                nameDiv.innerHTML = "Name: " + entries[idx].content.name;
-                newDiv.appendChild(nameDiv);
-
-                var summDiv = document.createElement('div')
-                summDiv.setAttribute('class', 'queue-entry-summary');
-                summDiv.innerHTML = "Summary: " + entries[idx].content.summary;
-                newDiv.appendChild(summDiv);
-
-                var statDiv = document.createElement('div')
-                statDiv.setAttribute('class', 'queue-entry-status');
-                statDiv.innerHTML = "Status: " + entries[idx].status;
-                newDiv.appendChild(statDiv);
-
-                var jsonDiv = document.createElement('div')
-                jsonDiv.setAttribute('class', 'queue-entry-json');
-                jsonDiv.innerHTML = JSON.stringify(entries[idx]);
-                newDiv.appendChild(jsonDiv);
-
-                queue.appendChild(newDiv);
+            if(entries[idx].status == 'waiting') {
+              var waitDiv = document.createElement('div')
+              waitDiv.setAttribute('class', 'queue-entry-wait');
+              waitDiv.innerHTML = "Waiting Since: " + new Date(entries[idx].timestamp).toLocaleString();
+              newDiv.appendChild(waitDiv);
             }
+
+            var jsonDiv = document.createElement('div')
+            jsonDiv.setAttribute('class', 'queue-entry-json');
+            jsonDiv.innerHTML = JSON.stringify(entries[idx]);
+            newDiv.appendChild(jsonDiv);
+            
+            queue.appendChild(newDiv);
         }
+    }
 
-        function entryDown(id) {
-            var entry = document.getElementById(id);
-            entry.style.boxShadow = "0px 0px 0px #888888";
+    function entryDown(id) {
+        var entry = document.getElementById(id);
+        entry.style.boxShadow = "0px 0px 0px #888888";
+    }
+
+    function entryUp(id, clicked) {
+        var entry = document.getElementById(id);
+        entry.style.boxShadow = "1px 1px 5px #888888";
+        if (clicked) {
+            console.log("Clicked");
+            console.log(entry.lastChild.innerHTML);
+
+            customerEntry = JSON.parse(entry.lastChild.innerHTML)
+            supportAgent.acceptRequest(customerEntry);
         }
+    }
 
-        function entryUp(id, clicked) {
-            var entry = document.getElementById(id);
-            entry.style.boxShadow = "1px 1px 5px #888888";
-            if (clicked) {
-                console.log("Clicked");
-                console.log(entry.lastChild.innerHTML);
+    require(["Agent"], function (Agent) {
 
-                supportAgent.acceptRequest(JSON.parse(entry.lastChild.innerHTML));
-            }
-        }
+        supportAgent = new Agent.Agent("Agent");
+        supportAgent.connectToMaster();
+        supportAgent.on('queue_updated', populateQueue);
 
-        function localStramAdded() {
-        }
+        supportAgent.on('localStreamAdded', function (stream) {
+            var videoElement = document.getElementById("localVideo");
+            var imageElement = document.getElementById("localImage");
 
-        require(["Agent"], function (Agent) {
+            videoElement.setAttribute("style", "display:block;");
+            imageElement.setAttribute("style", "display:none");
 
-            supportAgent = new Agent.Agent("Agent");
-            supportAgent.connectToMaster();
-            supportAgent.on('queue_updated', populateQueue);
-
-            supportAgent.on('localStreamAdded', function (stream) {
-                var videoElement = document.getElementById("localVideo");
-                var imageElement = document.getElementById("localImage");
-
-                videoElement.setAttribute("style", "display:block;");
-                imageElement.setAttribute("style", "display:none");
-
-                videoElement.src = URL.createObjectURL(stream);
-            });
-
-            supportAgent.on('localStreamRemoved', function (stream) {
-
-                var videoElement = document.getElementById("localVideo");
-                var imageElement = document.getElementById("localImage");
-
-                videoElement.setAttribute("style", "display:none");
-                imageElement.setAttribute("style", "display:block");
-
-                videoElement.src = null;
-            });
-
-            supportAgent.on('remoteStreamAdded', function (stream) {
-                var videoElement = document.getElementById("remoteVideo");
-                var imageElement = document.getElementById("remoteImage");
-
-                videoElement.setAttribute("style", "display:block;");
-                imageElement.setAttribute("style", "display:none");
-
-                videoElement.src = URL.createObjectURL(stream);
-            });
-
-            supportAgent.on('remoteStreamRemoved', function (stream) {
-
-                var videoElement = document.getElementById("remoteVideo");
-                var imageElement = document.getElementById("remoteImage");
-
-                videoElement.setAttribute("style", "display:none");
-                imageElement.setAttribute("style", "display:block");
-
-                videoElement.src = null;
-            });
-
-            //This function will be called when all the dependencies
-            //listed above are loaded. Note that this function could
-            //be called before the page is loaded.
-            //This callback is optional.
+            videoElement.src = URL.createObjectURL(stream);
         });
 
+        supportAgent.on('localStreamRemoved', function (stream) {
 
-    </script>
+            var videoElement = document.getElementById("localVideo");
+            var imageElement = document.getElementById("localImage");
+
+            videoElement.setAttribute("style", "display:none");
+            imageElement.setAttribute("style", "display:block");
+
+            videoElement.src = null;
+        });
+
+        supportAgent.on('remoteStreamAdded', function (stream) {
+            var videoElement = document.getElementById("remoteVideo");
+            var imageElement = document.getElementById("remoteImage");
+            var customer = document.getElementById("customer");
+            
+            videoElement.setAttribute("style", "display:block;");
+            imageElement.setAttribute("style", "display:none");
+            customer.innerHTML = customerEntry.content.name;
+            
+            videoElement.src = URL.createObjectURL(stream);
+        });
+
+        supportAgent.on('remoteStreamRemoved', function (stream) {
+
+            var videoElement = document.getElementById("remoteVideo");
+            var imageElement = document.getElementById("remoteImage");
+
+            videoElement.setAttribute("style", "display:none");
+            imageElement.setAttribute("style", "display:block");
+
+            videoElement.src = null;
+        });
+
+        //This function will be called when all the dependencies
+        //listed above are loaded. Note that this function could
+        //be called before the page is loaded.
+        //This callback is optional.
+    });
+
+
+</script>
 
 </html>
 

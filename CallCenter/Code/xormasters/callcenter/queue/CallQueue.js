@@ -9,8 +9,8 @@ define(
         var findEntry = function (entry, queue) {
             var idx = -1;
             for (var i = 0; i < queue.length; i++) {
-                console.log("i = " + i + ", entry.time = " + entry.time + ", " + ", queue[i].time = " + queue[i].time)
-                if (entry.time == queue[i].time) {
+                console.log("i = " + i + ", entry.time = " + entry.timestamp + ", " + ", queue[i].time = " + queue[i].timestamp)
+                if (entry.timestamp == queue[i].timestamp) {
                     idx = i;
                     break;
                 }
