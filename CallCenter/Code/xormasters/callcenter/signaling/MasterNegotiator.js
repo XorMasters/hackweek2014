@@ -6,17 +6,18 @@ define(
      "xormasters/callcenter/signaling/Signaling",
      "EventEmitter"],
     function (modContact, modTransport, modSignaling, EventEmitter) {
-        
+    
         var MasterNegotiator = function (transportName) {
 
             this.transportName = transportName;
             this.signaling = new modSignaling.createSignalingForMaster();
+            this.agentSession = new modTransport.Session();
         };
 
         function initiateAgentSession(negotiator, agentContact) {
 
-            var agentSession = new modTransport.Session();
-
+            var agentSession = negotiator.agentSession;
+            
             agentSession.on('localCallInfoAvailable', function (localCallInfo) {
                 console.log('Received local call info. Accepting agent request...');
                 var localContact = new modContact.Contact("Master", "Test answer made by Master", localCallInfo);
@@ -28,7 +29,7 @@ define(
                 negotiator.emit('connected', agentSession);
             });
 
-            agentSession.addTransportWithRemote(negotiator.transportName, agentContact.callInfo);
+            agentSession.addTransportWithRemote(negotiator.transportName + (new Date().getTime()), agentContact.callInfo);
         }
 
         MasterNegotiator.prototype = {

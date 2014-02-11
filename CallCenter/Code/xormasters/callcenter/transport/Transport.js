@@ -27,7 +27,7 @@ define(
 
         var Session = function () {
             var thi$ = this;
-            this.transports = new Array();
+            this.transports = {};
 
             var room = location.pathname.substring(1);
             if (room === '') {
