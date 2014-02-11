@@ -27,6 +27,7 @@ define(
                     if ((destination === localDestination)
                             && (agentContact.name.indexOf('Agent') == 0)) {
                         thi$.emit('agent_request', agentContact);
+                        snapshot.ref().remove();
                     }
                 } else {
                     var masterContact = snapshot.child('source').val();
@@ -34,10 +35,11 @@ define(
                     if ((destination === localDestination)
                             && (masterContact.name.indexOf('Master') == 0)) {
                         thi$.emit('master_accepted', masterContact);
+                        snapshot.ref().remove();
                     }
                     // TODO: How about multiple agents at the same time?
-                    // snapshot.remove();
                 }
+
             });
         };
 
@@ -95,6 +97,7 @@ define(
                         };
 
                         thi$.emit('support_request', supportRequest);
+                        snapshot.ref().remove();
                     }
                 } else if (mode === 'client') {
                     var agentContact = snapshot.child('source').val();
@@ -111,6 +114,7 @@ define(
                         };
 
                         thi$.emit('request_accepted', supportRequest);
+                        snapshot.ref().remove();
                     }
                     // TODO: How about multiple agents at the same time?
                     // snapshot.remove();

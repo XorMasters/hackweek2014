@@ -48,29 +48,32 @@ define(
                         // TODO: subscribe to all session events to make the streams available in HTML
                         console.log('Connected to support session');
 
-                        session.transport.on('remoteStreamAdded', function (stream) {
+                        session.on('remoteStreamAdded', function (stream) {
                             console.log("Agent: remote stream added");
                             thi$.emit('remoteStreamAdded', stream);
                         });
-                        session.transport.on('remoteStreamRemoved', function (stream) {
+                        session.on('remoteStreamRemoved', function (stream) {
                             thi$.emit('remoteStreamRemoved', stream);
                         });
 
-                        session.transport.on('localStreamAdded', function (stream) {
+                        session.on('localStreamAdded', function (stream) {
                             console.log("Agent: local stream added");
                             thi$.emit('localStreamAdded', stream);
                         });
-                        session.transport.on('localStreamRemoved', function (stream) {
+                        session.on('localStreamRemoved', function (stream) {
                             thi$.emit('localStreamRemoved', stream);
                         });
-
-                        if (session.transport.localStream != undefined) {
-                            thi$.emit('localStreamAdded', session.transport.localStream);
+                        
+                        for( var name in session.transports) {
+                          if (session.transports[name].localStream != undefined) {
+                            thi$.emit('localStreamAdded', session.transports[name].localStream);
+                          }
+                          
+                          if (session.transports[name].remoteStream != undefined) {
+                            thi$.emit('remoteStreamAdded', session.transports[name].remoteStream);
+                          }
                         }
 
-                        if (session.transport.remoteStream != undefined) {
-                            thi$.emit('remoteStreamAdded', session.transport.remoteStream);
-                        }
                     });
                     thi$.supportNegotiator.connect();
                 });

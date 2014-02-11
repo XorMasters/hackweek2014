@@ -25,16 +25,18 @@ define(
 
             this.negotiator.on('connected', function (session) {
                 thi$.supportSession = session;
-                session.transport.on('remoteStreamAdded', function (stream) {
+                session.on('remoteStreamAdded', function (stream) {
                     thi$.emit('remoteStreamAdded', stream);
                 });
-                session.transport.on('remoteStreamRemoved', function (stream) {
+                session.on('remoteStreamRemoved', function (stream) {
                     thi$.emit('remoteStreamRemoved', stream);
                 });
                 console.log('Support session connected')
 
-                if (session.transport.remoteStream != undefined) {
-                    thi$.emit('remoteStreamAdded', session.transport.remoteStream);
+                for( var name in session.transports ) {
+                  if (session.transports[name].remoteStream != undefined) {
+                    thi$.emit('remoteStreamAdded', session.transports[name].remoteStream);
+                  }
                 }
                 //TODO
                 //session.on('remoteMediaStreamAdded');

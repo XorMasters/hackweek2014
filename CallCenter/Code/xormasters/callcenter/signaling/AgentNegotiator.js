@@ -38,7 +38,7 @@ define(
 
                 this.signaling.on('master_accepted', function (masterContact) {
                     console.log("Request accepted by master node.");
-                    masterSession.setRemoteCallInfo("MasterSession", masterContact.callInfo);
+                    masterSession.setRemoteCallInfo("call_queue", masterContact.callInfo);
                 });
             }
         };

@@ -24,7 +24,7 @@ define(
             });
 
             agentSession.on('connected', function () {
-                console.log('Master connected to master session for agent');
+                console.log('Master connected to master session for agent', agentSession);
                 negotiator.emit('connected', agentSession);
             });
 

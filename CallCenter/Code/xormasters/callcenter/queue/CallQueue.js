@@ -31,7 +31,7 @@ define(
 
                 var thi$ = this;
 
-                this.session.transport.on('data', function (data) {
+                this.session.on('data', function (data, transport) {
                     var message = JSON.parse(data);
                     if (message.type === 'update') {
                         console.log( "payload: ", message.payload);
@@ -61,7 +61,7 @@ define(
                             payload: payload
                         }
                         var str = JSON.stringify(messageResult);
-                        thi$.session.transport.sendData(str);
+                        transport.sendData(str);
                         thi$.sendUpdate();
                     } else if (message.type === 'takenResult') {
                         thi$.emit('takenResult', message.payload);
@@ -106,7 +106,10 @@ define(
                 var data = JSON.stringify(message);
                 console.log("Sending RTC data with length " + data.length);
                 console.log("Sending RTC data: " + data);
-                this.session.transport.sendData(data);
+                for( var name in this.session.transports ) {
+                  console.log( "Sending on transport named: " + name );
+                  this.session.transports[name].sendData(data);
+                }
             },
 
             take: function (entry) {
@@ -116,7 +119,9 @@ define(
                     payload: entry
                 }
 
-                this.session.transport.sendData(JSON.stringify(message));
+                for( var name in this.session.transports) {
+                  this.session.transports[name].sendData(JSON.stringify(message));
+                }
             }
         }
 

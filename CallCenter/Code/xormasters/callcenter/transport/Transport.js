@@ -27,7 +27,7 @@ define(
 
         var Session = function () {
             var thi$ = this;
-            this.transport = undefined;
+            this.transports = new Array();
 
             var room = location.pathname.substring(1);
             if (room === '') {
@@ -123,34 +123,37 @@ define(
 
         Session.prototype = {
             addTransport: function (name, constraints) {
-                this.transport = new Transport(name, this);
-                this.transport.start(constraints);
+                console.log( "Adding transport named: " + name );
+                var transport = new Transport(name, this)
+                this.transports[name] = transport;
+                transport.start(constraints);
             },
 
             addTransportWithRemote: function (name, remoteCallInfo, constraints) {
-                this.transport = new Transport(name, this);
-                this.transport.accept(remoteCallInfo, constraints);
+                console.log( "Adding transport named: " + name );
+                var transport = new Transport(name, this)
+                this.transports[name] = transport;
+                transport.accept(remoteCallInfo, constraints);
             },
 
             removeTransport: function (name) {
-                this.transport.stop();
-                this.sendMessage('bye');
-                this.transport = undefined;
+                var transport = this.transports[name];
+                transport.stop();
+                this.transports[name] = undefined;
             },
 
             setRemoteCallInfo: function (name, callInfo) {
                 console.log('Setting remote call info for transport \'' + name + '\'');
-                this.transport.setRemoteCallInfo(callInfo);
+                this.transports[name].setRemoteCallInfo(callInfo);
             },
 
-            sendData: function (data) {
-                this.transport.sendData(data);
+            sendData: function (data, name) {
+                this.transports[name].sendData(data);
             },
 
-            close : function() {
-                this.transport.stop();
-                this.sendMessage('bye');
-                this.transport = undefined;
+            close : function(name) {
+                this.transports[name].stop();
+                this.transports[name] = undefined;
             }
         }
 
@@ -410,7 +413,7 @@ define(
                 var chunk = JSON.parse(event.data);
 
                 if (chunk.final) {
-                    thi$.emit('data', thi$.receiveBuffer.concat(chunk.data));
+                    thi$.session.emit('data', thi$.receiveBuffer.concat(chunk.data), thi$);
                     thi$.receiveBuffer = "";
                 } else {
                     thi$.receiveBuffer = thi$.receiveBuffer.concat(chunk.data);
@@ -469,7 +472,7 @@ define(
               thi$.pc.addStream(stream);
 
               console.log('Transport: handleUserMedia emits local stream added');
-              thi$.emit('localStreamAdded', stream);
+              thi$.session.emit('localStreamAdded', stream);
               thi$.maybeStart();
             }
             
@@ -480,7 +483,7 @@ define(
             this.handleRemoteStreamAdded = function(event) {
               console.log("Remote stream added");
               thi$.remoteStream = event.stream
-              thi$.emit('remoteStreamAdded', event.stream);
+              thi$.session.emit('remoteStreamAdded', event.stream);
 
               //if (thi$.localStream != undefined) {
               //    console.log('Transport: handleRemoteStreamAdded emits local stream added');
@@ -491,7 +494,7 @@ define(
             this.handleRemoteStreamRemoved = function(event) {
               console.log( "Remote stream removed" );
               thi$.remoteStream = undefined;
-              thi$.emit('remoteStreamRemoved');
+              thi$.session.emit('remoteStreamRemoved');
             }
         }
 
