@@ -46,7 +46,7 @@ define(
         AgentSignaling.prototype = {
 
             postAgentRequest: function (agentContact) {
-                console.log('Signaling: postAgentRequest' + agentContact);
+                console.log('Signaling: postAgentRequest =>', agentContact);
                 var request = {
                     source: agentContact,
                     destination: masterDestination,
@@ -57,7 +57,7 @@ define(
             },
 
             acceptAgentRequest: function (agentContact, masterContact) {
-                console.log('Signaling: acceptAgentRequest' + agentContact);
+                console.log('Signaling: acceptAgentRequest =>', agentContact);
                 var request = {
                     source: masterContact,
                     destination: agentContact.name,

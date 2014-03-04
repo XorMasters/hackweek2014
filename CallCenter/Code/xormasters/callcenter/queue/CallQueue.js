@@ -81,6 +81,7 @@ define(
             },
 
             sendUpdate: function () {
+				this.emit('update', this.call_queue)
                 var queue = new Array();
                 for( var i = 0; i < this.call_queue.length; ++i ) {
                   var entry = this.call_queue[i];
@@ -104,10 +105,7 @@ define(
                 }
 
                 var data = JSON.stringify(message);
-                console.log("Sending RTC data with length " + data.length);
-                console.log("Sending RTC data: " + data);
                 for( var name in this.session.transports ) {
-                  console.log( "Sending on transport named: " + name );
                   this.session.transports[name].sendData(data);
                 }
             },

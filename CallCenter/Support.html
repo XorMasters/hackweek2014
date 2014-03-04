@@ -7,7 +7,7 @@
 
     <base target='_blank'>
 
-    <title>Support Client</title>
+    <title>Random Web Page</title>
 
     <!-- <link rel='stylesheet' href='css/main.css' /> -->
 
@@ -36,10 +36,15 @@
     float:right;
     display:inline;
     width:265px;
-    height: 265px;
+    height: 290px;
     margin-left: 1em;
     border: 1px dotted black;
     padding: 1em;
+  }
+  
+  #spinner {
+	  margin-top: 0.25em;
+	  display: none;
   }
   
   </style>
@@ -61,7 +66,10 @@
       <td><textarea id='desc'>What is XOR?</textarea></div>
     </tr>
     <tr>
-      <td colspan='2' align='center'><button id='start'>Contact Support</button></td>
+      <td colspan='2' align='center'>
+		  <div id='start' ><button onclick='onSupportRequestedAction()'>Contact Support</button></div>
+		  <div id='spinner'><img src='Images/spinner.gif'/></div>
+	  </td>
     </tr>
   </table>
 </div>
@@ -146,10 +154,12 @@ Nunc blandit mauris eu viverra elementum. Nam pellentesque arcu in diam sagittis
         supportClient.on('remoteStreamAdded', function (stream) {
             var videoElement = document.getElementById("video");
             var imageElement = document.getElementById("image");
-
+			var spinner = document.getElementById("spinner");
+			
             videoElement.setAttribute("style", "display:block;");
             imageElement.setAttribute("style", "display:none;");
-
+			spinner.setAttribute('style', 'display: none;');
+			
             videoElement.src = URL.createObjectURL(stream);
 
             //videoElement.removeChild(videoElement.childNodes[0]);
@@ -187,7 +197,12 @@ Nunc blandit mauris eu viverra elementum. Nam pellentesque arcu in diam sagittis
     function onSupportRequestedAction() {
         var clientName = document.getElementById("name").value;
         var description = document.getElementById("desc").value;
-
+		var spinner = document.getElementById("spinner");
+		var start = document.getElementById('start');
+		
+		start.setAttribute('style', 'display: none;')
+		spinner.setAttribute('style', 'display: block;')
+		
         var supportContent = {
             name: clientName,
             summary: description
@@ -195,9 +210,6 @@ Nunc blandit mauris eu viverra elementum. Nam pellentesque arcu in diam sagittis
 
         requestSupport(supportContent);
     }
-
-    var requestButton = document.getElementById("start");
-    requestButton.onclick = onSupportRequestedAction;
 
     </script>
 

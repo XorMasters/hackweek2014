@@ -18,13 +18,13 @@ define(
 
             var agentSession = negotiator.agentSession;
             
-            agentSession.on('localCallInfoAvailable', function (localCallInfo) {
+            agentSession.once('localCallInfoAvailable', function (localCallInfo) {
                 console.log('Received local call info. Accepting agent request...');
                 var localContact = new modContact.Contact("Master", "Test answer made by Master", localCallInfo);
                 negotiator.signaling.acceptAgentRequest(agentContact, localContact);
             });
 
-            agentSession.on('connected', function () {
+            agentSession.once('connected', function () {
                 console.log('Master connected to master session for agent', agentSession);
                 negotiator.emit('connected', agentSession);
             });

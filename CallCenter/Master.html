@@ -7,16 +7,94 @@
 
     <base target='_blank'>
 
-    <title>Master Agent</title>
+    <title>Dashboard</title>
 
     <!-- <link rel='stylesheet' href='css/main.css' /> -->
 
 </head>
-    <script src="https://cdn.firebase.com/v0/firebase.js"></script>
-    <script src="./Lib/require.js"></script>
-    <script src="Master.js"></script>
 
+<script src="https://cdn.firebase.com/v0/firebase.js"></script>
+<script src="./Lib/require.js"></script>
+<script src="Master.js"></script>
+
+<style>
+
+th.agents {
+	background-color: moccasin;
+	padding-top: 1em;
+	padding-bottom: 1em;
+}
+
+th.calls {
+	background-color: moccasin;
+	padding-top: 1em;
+	padding-bottom: 1em;
+}
+
+td.agents {
+	width: 350px;
+	vertical-align: top;
+	padding-bottom: 1em;
+	padding-top: 1em;
+}
+
+td.calls {
+	width: 350px;
+	vertical-align: top;
+	padding-bottom: 1em;
+	padding-top: 1em;
+}
+
+div.agent-entry {
+    margin-top: 0.5em;
+    margin-right: 0.5em;
+    margin-left: 0.5em;
+    padding: 0.25em;
+    border: 2px solid royalblue;
+    background-color: gainsboro;
+    box-shadow: 1px 1px 5px #888888;
+    border-radius: 10px;
+}
+
+.queue-entry-waiting {
+  margin-top: 0.5em;
+  margin-right: 0.5em;
+  margin-left: 0.5em;
+  padding: 0.25em;
+  border: 2px solid green;
+  background-color: white;
+  box-shadow: 1px 1px 5px #888888;
+  border-radius: 10px;
+}
+
+.queue-entry-taken {
+  margin-top: 0.35em;
+  margin-right: 0.5em;
+  margin-left: 0.5em;
+  padding: 0.25em;
+  border: 2px solid red;
+  background-color: white;
+  box-shadow: 1px 1px 5px #888888;
+  border-radius: 10px;
+}
+
+.queue-entry-json {
+  display: none;
+}
+
+</style>
+	
 <body>
+	<table style='border: 1px solid black; border-collapse:collapse;'>
+		<tr>
+			<th class='calls' >Support Calls</td>
+			<th class='agents'>Support Agents</td>
+		</tr>
+		<tr>
+			<td class='calls'><div id='calls-list'></div></td>
+			<td class='agents'><div id='agents-list'></div></td>
+		</tr>
+	</table>
 </body>
 </html>
 

@@ -152,8 +152,10 @@ define(
             },
 
             close : function(name) {
-                this.transports[name].stop();
-                this.transports[name] = undefined;
+				if(this.transports[name] != undefined) {
+                	this.transports[name].stop();
+                	this.transports[name] = undefined;
+				}
             }
         }
 

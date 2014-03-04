@@ -141,18 +141,11 @@
         queue.innerHTML = "";
         for (var idx = 0; idx < entries.length; ++idx) {
             var newDiv = document.createElement('div');
-
+			var id = 'entry' + idx;
+			
             var status = entries[idx].status.toLowerCase();
             newDiv.setAttribute('class', 'queue-entry-' + status);
-            newDiv.setAttribute('id', 'entry' + idx);
-
-            if (status === 'waiting') {
-                newDiv.setAttribute('onmousedown', 'entryDown("entry' + idx + '")');
-                newDiv.setAttribute('onmouseup', 'entryUp("entry' + idx + '", true)');
-                newDiv.setAttribute('onmouseout', 'entryUp("entry' + idx + '", false)');
-
-                newDiv.setAttribute('ontouchstart', 'entryDown("entry' + idx + '")', false);
-            }
+            newDiv.setAttribute('id', id);
 
             var nameDiv = document.createElement('div')
             nameDiv.setAttribute('class', 'queue-entry-name');
@@ -175,10 +168,16 @@
               waitDiv.innerHTML = "Waiting Since: " + new Date(entries[idx].timestamp).toLocaleString();
               newDiv.appendChild(waitDiv);
 			  
-			  var takeBut = document.createElement('button');
-  			  takeBut.setAttribute('class', 'queue-entry-take');
-  			  takeBut.innerHTML = "Take this Call";
-  			  newDiv.appendChild(takeBut);
+			  var takeDiv = document.createElement('div');
+			  takeDiv.setAttribute('id', 'button-' + id)
+  			  takeDiv.innerHTML = '<button onclick="takeCall(\''+id+'\')">Take this Call</button>';
+  			  newDiv.appendChild(takeDiv);
+			  
+			  var spinDiv = document.createElement('div');
+			  spinDiv.setAttribute('style', 'display: none;')
+			  spinDiv.setAttribute('id', 'img-' + id)
+			  spinDiv.innerHTML = '<img src=\'images/spinner.gif\'>'
+			  newDiv.appendChild(spinDiv)
             }
 
             var jsonDiv = document.createElement('div')
@@ -190,21 +189,19 @@
         }
     }
 
-    function entryDown(id) {
+    function takeCall(id) {
         var entry = document.getElementById(id);
-        entry.style.boxShadow = "0px 0px 0px #888888";
-    }
+        console.log("Clicked");
+        console.log(entry.lastChild.innerHTML);
 
-    function entryUp(id, clicked) {
-        var entry = document.getElementById(id);
-        entry.style.boxShadow = "1px 1px 5px #888888";
-        if (clicked) {
-            console.log("Clicked");
-            console.log(entry.lastChild.innerHTML);
-
-            customerEntry = JSON.parse(entry.lastChild.innerHTML)
-            supportAgent.acceptRequest(customerEntry);
-        }
+		var button = document.getElementById('button-'+id)
+		var img = document.getElementById('img-'+id)
+		
+		button.setAttribute('style', 'display: none')
+		img.setAttribute('style', 'display: block')
+		
+        customerEntry = JSON.parse(entry.lastChild.innerHTML)
+        supportAgent.acceptRequest(customerEntry);
     }
 
     require(["Agent"], function (Agent) {
