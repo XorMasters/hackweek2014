@@ -55,6 +55,7 @@
     <div id="videoDiv" align='center'>
         <img class='silhouette' id='image' src='Images/support.jpg' style="display:block" width='50%' />
         <video class='silhouette' id="video" autoplay muted style="display:none" width="250"/>
+        <audio id="audio" autoplay style="display:none"/>
     </div>
   <table>
     <tr>
@@ -153,6 +154,7 @@ Nunc blandit mauris eu viverra elementum. Nam pellentesque arcu in diam sagittis
 
         supportClient.on('remoteStreamAdded', function (stream) {
             var videoElement = document.getElementById("video");
+			var audioElement = document.getElementById("audio");
             var imageElement = document.getElementById("image");
 			var spinner = document.getElementById("spinner");
 			
@@ -161,14 +163,8 @@ Nunc blandit mauris eu viverra elementum. Nam pellentesque arcu in diam sagittis
 			spinner.setAttribute('style', 'display: none;');
 			
             videoElement.src = URL.createObjectURL(stream);
-
-            //videoElement.removeChild(videoElement.childNodes[0]);
-
-            //var video = document.createElement('video');
-            //video.setAttribute('autoplay');
-            //video.setAttribute('muted');
-            //video.src = URL.createObjectURL(stream);
-            //videoElement.appendChild(video);
+			audioElement.src = URL.createObjectURL(stream);
+			
         });
 
         supportClient.on('remoteStreamRemoved', function (stream) {
@@ -181,16 +177,13 @@ Nunc blandit mauris eu viverra elementum. Nam pellentesque arcu in diam sagittis
 
             videoElement.src = null;
 
-            //var videoElement = document.getElementById("videoDiv");
-            //videoElement.removeChild(videoElement.childNodes[0]);
-
-            //var image = document.createElement('img');
-            //image.setAttribute('class', 'silhouette');
-            //image.setAttribute('id', 'image');
-            //image.setAttribute('src', 'Images/support.jpg');
-            //videoElement.appendChild(image);
         });
 
+		supportClient.on('localStreamError', function(error){
+			console.error('Unable to connect to local media', error);
+			alert('Unable to get access to camera and mic, please be sure both are connected: ' + JSON.stringify(error));
+		});
+		
         supportClient.requestSupport();
     }
 

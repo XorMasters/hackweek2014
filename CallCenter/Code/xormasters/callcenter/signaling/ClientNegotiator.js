@@ -43,7 +43,11 @@ define(
                     thi$.emit('connected', supportSession);
                 });
 
-                supportSession.addTransport("support", {video:true});
+				supportSession.on('localStreamError', function(error) {
+					thi$.emit('localStreamError', error);
+				});
+				
+                supportSession.addTransport("support", {video:true, audio:true});
 
                 this.signaling.on('request_accepted', function (supportRequest) {
                     console.log("Accepted support request " + supportRequest);

@@ -30,12 +30,16 @@ define(
                     thi$.signaling.acceptClientRequest(thi$.supportRequest, localAgentContact);
                 });
 
+                supportSession.on('localStreamError', function (error) {
+                    thi$.emit('localStreamError', error);
+                });
+
                 supportSession.on('connected', function () {
                     console.log('Agent connected to support session');
                     thi$.emit('connected', supportSession);
                 });
 
-                supportSession.addTransportWithRemote(this.transportName, thi$.supportRequest.source.callInfo, { video: true });
+                supportSession.addTransportWithRemote(this.transportName, thi$.supportRequest.source.callInfo, { video: true, audio:true });
             }
         };
 
