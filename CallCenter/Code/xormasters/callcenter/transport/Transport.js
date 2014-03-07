@@ -480,6 +480,7 @@ define(
             
             this.handleUserMediaError = function(error) {
               console.error( "getUserMedia error: ", error );
+			  thi$.session.emit('localStreamError', error);
             }
             
             this.handleRemoteStreamAdded = function(event) {

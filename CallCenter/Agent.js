@@ -43,6 +43,11 @@ define(
 
                     thi$.supportNegotiator = modSupportNegotiator.createAgentSupportNegotiator(msgPayload, 'support', thi$.agentName);
 
+					thi$.supportNegotiator.on('localStreamError', function(error) {
+						console.log("Negotiator: Local stream error");
+						thi$.emit('localStreamError', error);
+					});
+					
                     thi$.supportNegotiator.on('connected', function (session) {
                         thi$.supportSession = session;
                         // TODO: subscribe to all session events to make the streams available in HTML
@@ -56,10 +61,10 @@ define(
                             thi$.emit('remoteStreamRemoved', stream);
                         });
 
-                        session.on('localStreamAdded', function (stream) {
-                            console.log("Agent: local stream added");
-                            thi$.emit('localStreamAdded', stream);
-                        });
+						session.on('localStreamAdded', function(stream) {
+							console.log("Agent: local stream added");
+							thi$.emit('localStreamAdded', stream);
+						});
                         session.on('localStreamRemoved', function (stream) {
                             thi$.emit('localStreamRemoved', stream);
                         });

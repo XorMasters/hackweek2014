@@ -23,6 +23,10 @@ define(
             this.negotiator = modNegotiator.createClientNegotiator(supportContent, this.clientName);
             var thi$ = this;
 
+			this.negotiator.on('localStreamError', function(error){
+				thi$.emit('localStreamError', error);
+			});
+			
             this.negotiator.on('connected', function (session) {
                 thi$.supportSession = session;
                 session.on('remoteStreamAdded', function (stream) {
@@ -70,59 +74,3 @@ define(
         };
     }
 );
-
-//window.onbeforeunload = function (e) {
-//    if (supportClient != undefined) {
-//        supportClient.hangup();
-//        supportClient = undefined;
-//    }
-//};
-
-//function requestSupport(supportContent) {
-//    if (supportClient != undefined) {
-//        console.log('Support session already in progress.');
-//        return;
-//    }
-
-//    supportClient = new Client(supportContent);
-
-//    supportClient.on('remoteStreamAdded', function (stream) {
-//        var videoElement = document.getElementById("videoDiv");
-//        videoElement.removeChild(videoElement.childNodes[0]);
-
-//        var video = document.createElement('video');
-//        video.setAttribute('autoplay');
-//        video.setAttribute('muted');
-//        video.src = URL.createObjectURL(stream);
-//        videoElement.appendChild(video);
-//    });
-
-//    supportClient.on('remoteStreamRemoved', function (stream) {
-
-//        var videoElement = document.getElementById("videoDiv");
-//        videoElement.removeChild(videoElement.childNodes[0]);
-
-//        var image = document.createElement('img');
-//        image.setAttribute('class', 'silhouette');
-//        image.setAttribute('id', 'image');
-//        image.setAttribute('src', 'Images/support.jpg');
-//        videoElement.appendChild(image);
-//    });
-
-//    supportClient.requestSupport();
-//}
-
-//function onSupportRequestedAction() {
-//    var clientName = document.getElementById("name").value;
-//    var description = document.getElementById("desc").value;
-
-//    var supportContent = {
-//        name: clientName,
-//        summary: description
-//    };
-
-//    requestSupport(supportContent);
-//}
-
-//var requestButton = document.getElementById("start");
-//requestButton.onclick = onSupportRequestedAction;

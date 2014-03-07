@@ -125,6 +125,10 @@ require(
 	    }
 		
         function hangup(e) {
+<<<<<<< HEAD
+=======
+			
+>>>>>>> a74d1a75ee7a47186003456787b40845461ed0f0
             callQueue && callQueue.stop();
 			callQueue = undefined;
             masterNegotiator = undefined;

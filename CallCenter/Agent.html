@@ -111,6 +111,7 @@
       <div align='center'>
         <img class='silhouette' id='remoteImage' src='Images/silhouette.png'>
         <video id="remoteVideo" autoplay muted style="display:none" width="75%"/>
+        <audio id="audio" autoplay style="display:none"/>
       </div>
       <div class='title' id='customer'>Customer</div>
     </td>
@@ -230,9 +231,15 @@
 
             videoElement.src = null;
         });
+		
+		supportAgent.on('localStreamError', function(error) {
+			console.error('Unable to connect to local media', error);
+			alert('Unable to get access to camera and mic, please be sure both are connected: ' + JSON.stringify(error));
+		})
 
         supportAgent.on('remoteStreamAdded', function (stream) {
             var videoElement = document.getElementById("remoteVideo");
+            var audioElement = document.getElementById("audio");
             var imageElement = document.getElementById("remoteImage");
             var customer = document.getElementById("customer");
             
@@ -241,6 +248,8 @@
             customer.innerHTML = customerEntry.content.name;
             
             videoElement.src = URL.createObjectURL(stream);
+			audioElement.src = URL.createObjectURL(stream);
+			
         });
 
         supportAgent.on('remoteStreamRemoved', function (stream) {
