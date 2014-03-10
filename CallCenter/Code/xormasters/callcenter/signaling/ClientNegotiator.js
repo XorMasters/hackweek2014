@@ -7,11 +7,12 @@ define(
      "EventEmitter"],
     function (modContact, modTransport, modSignaling, EventEmitter) {
 
-        var ClientNegotiator = function (supportContent, clientName) {
+        var ClientNegotiator = function (supportContent, clientName, callCenterName) {
 
             this.supportContent = supportContent;
             this.clientName = clientName;
-            this.signaling = new modSignaling.createClientSignalingForClient(clientName);
+			console.log("call center name: " + callCenterName);
+            this.signaling = new modSignaling.createClientSignalingForClient(clientName, callCenterName);
         };
 
          ClientNegotiator.prototype = {
@@ -60,8 +61,8 @@ define(
 
         //==================================================================================================
         // Factories
-        function createClientNegotiator(supportContent, clientName) {
-            return new ClientNegotiator(supportContent, clientName);
+        function createClientNegotiator(supportContent, clientName, callCenterName) {
+            return new ClientNegotiator(supportContent, clientName, callCenterName);
         }
 
         //==================================================================================================

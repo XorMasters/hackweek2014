@@ -8,10 +8,12 @@ define(
 
 //==================================================================================================
 // Agent <-> Master Signaling
-        var AgentSignaling = function (isMaster, localDestination) {
+        var AgentSignaling = function (isMaster, localDestination, name) {
 
             //Sagar's Firebase
-            this.agentDataRef = new Firebase("https://blazing-fire-5145.firebaseio.com");
+			this.name = name
+			console.log("signalling name: " + this.name)
+            this.agentDataRef = new Firebase("https://blazing-fire-5145.firebaseio.com/" + this.name);
             //Stan's Firebase
             //this.agentDataRef = new Firebase("https://resplendent-fire-4441.firebaseio.com/");
             this.isMaster = isMaster;
@@ -72,11 +74,13 @@ define(
 
 //==================================================================================================
 // Client <-> Master Signaling
-        var ClientSignaling = function (mode, localDestination) {
+        var ClientSignaling = function (mode, localDestination, callCenterName) {
 
             this.mode = mode;
             this.localDestination = localDestination;
-            this.clientDataRef = new Firebase("https://xormastersclient.firebaseio.com");
+			this.callCenterName = callCenterName;
+			console.log("signalling name: " + this.callCenterName)
+            this.clientDataRef = new Firebase("https://xormastersclient.firebaseio.com/" + this.callCenterName);
 
             var thi$ = this;
 
@@ -154,24 +158,24 @@ define(
 
 //==================================================================================================
 // Factories
-        function createSignalingForAgent(localDestination) {
-            return new AgentSignaling(false, localDestination);
+        function createSignalingForAgent(localDestination, name) {
+            return new AgentSignaling(false, localDestination, name);
         }
 
-        function createSignalingForMaster() {
-            return new AgentSignaling(true, masterDestination);
+        function createSignalingForMaster(name) {
+            return new AgentSignaling(true, masterDestination, name);
         }
 
-        function createClientSignalingForMaster() {
-            return new ClientSignaling('master', masterDestination);
+        function createClientSignalingForMaster(callCenterName) {
+            return new ClientSignaling('master', masterDestination, callCenterName);
         }
 
-        function createClientSignalingForAgent(agentName) {
-            return new ClientSignaling('agent', agentName);
+        function createClientSignalingForAgent(agentName, callCenterName) {
+            return new ClientSignaling('agent', agentName, callCenterName);
         }
 
-        function createClientSignalingForClient(clientName) {
-            return new ClientSignaling('client', clientName);
+        function createClientSignalingForClient(clientName, callCenterName) {
+            return new ClientSignaling('client', clientName, callCenterName);
         }
 
 //==================================================================================================

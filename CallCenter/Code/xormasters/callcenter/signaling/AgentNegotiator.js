@@ -7,11 +7,11 @@ define(
      "EventEmitter"],
     function (modContact, modTransport, modSignaling, EventEmitter) {
 
-        var AgentNegotiator = function (transportName, agentName) {
+        var AgentNegotiator = function (transportName, agentName, callCenterName) {
 
             this.transportName = transportName;
             this.agentName = agentName;
-            this.signaling = new modSignaling.createSignalingForAgent(agentName);
+            this.signaling = new modSignaling.createSignalingForAgent(agentName, callCenterName);
         };
 
          AgentNegotiator.prototype = {
@@ -47,8 +47,8 @@ define(
 
         //==================================================================================================
         // Factories
-        function createAgentNegotiator(transportName, agentName) {
-            return new AgentNegotiator(transportName, agentName);
+        function createAgentNegotiator(transportName, agentName, callCenterName) {
+            return new AgentNegotiator(transportName, agentName, callCenterName);
         }
 
         //==================================================================================================

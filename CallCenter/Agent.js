@@ -19,13 +19,15 @@ define(
 
     function (modNegotiator, modSupportNegotiator, modCallQueue, EventEmitter) {
 
-        var Agent = function (agentName) {
+        var Agent = function (agentName, callCenterName) {
             this.agentName = agentName;
-            this.masterNegotiator = modNegotiator.createAgentNegotiator('call_queue', agentName);
+			this.callCenterName = callCenterName;
+            this.masterNegotiator = modNegotiator.createAgentNegotiator('call_queue', agentName, callCenterName);
             this.supportNegotiator = undefined;
             this.callQueue = undefined;
             this.supportSession = undefined;
 
+			console.log("call center name: " + this.callCenterName);
             var thi$ = this;
 
             this.masterNegotiator.on('connected', function (session) {
@@ -41,7 +43,7 @@ define(
 
                     console.log('Granted permission to take request: ' + msgPayload);
 
-                    thi$.supportNegotiator = modSupportNegotiator.createAgentSupportNegotiator(msgPayload, 'support', thi$.agentName);
+                    thi$.supportNegotiator = modSupportNegotiator.createAgentSupportNegotiator(msgPayload, 'support', thi$.agentName, thi$.callCenterName);
 
 					thi$.supportNegotiator.on('localStreamError', function(error) {
 						console.log("Negotiator: Local stream error");

@@ -128,7 +128,10 @@
 <script>
     var supportAgent = undefined;
     var customerEntry = undefined;
-    
+    var takingEntry = undefined;
+	
+	var name = window.location.search.slice(1);
+	
     window.onbeforeunload = function (e) {
         if (supportAgent != undefined) {
             supportAgent.hangup();
@@ -203,11 +206,14 @@
 		
         customerEntry = JSON.parse(entry.lastChild.innerHTML)
         supportAgent.acceptRequest(customerEntry);
+		
+		takingEntry = id;
     }
 
     require(["Agent"], function (Agent) {
 
-        supportAgent = new Agent.Agent("Agent");
+		console.log("name: " + name);
+        supportAgent = new Agent.Agent("Agent", name);
         supportAgent.connectToMaster();
         supportAgent.on('queue_updated', populateQueue);
 
@@ -234,6 +240,14 @@
 		
 		supportAgent.on('localStreamError', function(error) {
 			console.error('Unable to connect to local media', error);
+			
+			if(takingEntry != undefined) {
+				var spinnerElement = document.getElementById("img-"+takingEntry);
+				var buttonElement = document.getElementById("button-"+takingEntry);
+				
+				spinnerElement.setAttribute("style", "display:none");				
+				buttonElement.setAttribute("style", "display:block");				
+			}
 			alert('Unable to get access to camera and mic, please be sure both are connected: ' + JSON.stringify(error));
 		})
 

@@ -11,6 +11,20 @@ require.config({
 var masterNegotiator = undefined;
 var callQueue = undefined;
 var supportRequestSource = undefined;
+var name = window.location.search.slice(1);
+
+console.log("name: " + name);
+
+var onload = function() {
+	if(name == null || name.length <= 0) {
+		console.log("No name to call center given");
+		alert("No name is given for the call center. Reload the page with a call center name")
+	}
+	var callCenterName = document.getElementById('call-center-name');
+	if(callCenterName) {
+		callCenterName.innerHTML += name;
+	}
+}
 
 require(
     ["xormasters/callcenter/signaling/MasterNegotiator",
@@ -19,8 +33,8 @@ require(
 
     function (modNegotiator, modSignaling, modCallQueue) {
 
-        masterNegotiator = modNegotiator.createMasterNegotiator('call_queue');
-        supportRequestSource = modSignaling.createClientSignalingForMaster();
+        masterNegotiator = modNegotiator.createMasterNegotiator('call_queue', name);
+        supportRequestSource = modSignaling.createClientSignalingForMaster(name);
         supportRequestSource.on('support_request', function (supportRequest) {
             if (callQueue != undefined) {
                 console.log('Master adds support request from client ' + supportRequest.source.name + ' to queue');

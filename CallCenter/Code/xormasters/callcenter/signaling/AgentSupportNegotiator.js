@@ -7,12 +7,12 @@ define(
      "EventEmitter"],
     function (modContact, modTransport, modSignaling, EventEmitter) {
 
-        var AgentSupportNegotiator = function (supportRequest, transportName, agentName) {
+        var AgentSupportNegotiator = function (supportRequest, transportName, agentName, callCenterName) {
 
             this.supportRequest = supportRequest;
             this.transportName = transportName;
             this.agentName = agentName;
-            this.signaling = new modSignaling.createClientSignalingForAgent(agentName);
+            this.signaling = new modSignaling.createClientSignalingForAgent(agentName, callCenterName);
         };
 
          AgentSupportNegotiator.prototype = {
@@ -47,8 +47,8 @@ define(
 
         //==================================================================================================
         // Factories
-        function createAgentSupportNegotiator(supportRequest, transportName, agentName) {
-            return new AgentSupportNegotiator(supportRequest, transportName, agentName);
+        function createAgentSupportNegotiator(supportRequest, transportName, agentName, callCenterName) {
+            return new AgentSupportNegotiator(supportRequest, transportName, agentName, callCenterName);
         }
 
         //==================================================================================================

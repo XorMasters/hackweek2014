@@ -126,7 +126,8 @@ Nunc blandit mauris eu viverra elementum. Nam pellentesque arcu in diam sagittis
 <script>
     var modClient = undefined;
     var supportClient = undefined;
-
+	var callCenterName = "gcs-call-center";
+	
     window.onbeforeunload = function (e) {
         if (supportClient != undefined) {
             supportClient.hangup();
@@ -150,7 +151,7 @@ Nunc blandit mauris eu viverra elementum. Nam pellentesque arcu in diam sagittis
             return;
         }
 
-        supportClient = modClient.createClient(supportContent);
+        supportClient = modClient.createClient(supportContent, callCenterName);
 
         supportClient.on('remoteStreamAdded', function (stream) {
             var videoElement = document.getElementById("video");
@@ -181,6 +182,13 @@ Nunc blandit mauris eu viverra elementum. Nam pellentesque arcu in diam sagittis
 
 		supportClient.on('localStreamError', function(error){
 			console.error('Unable to connect to local media', error);
+			
+			var spinner = document.getElementById("spinner");
+			var button = document.getElementById("start");
+			
+			spinner.setAttribute("style", "display:none");
+			button.setAttribute("style", "display:block");
+			
 			alert('Unable to get access to camera and mic, please be sure both are connected: ' + JSON.stringify(error));
 		});
 		

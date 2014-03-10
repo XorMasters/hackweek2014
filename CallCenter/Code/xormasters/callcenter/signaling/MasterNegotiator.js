@@ -7,10 +7,10 @@ define(
      "EventEmitter"],
     function (modContact, modTransport, modSignaling, EventEmitter) {
     
-        var MasterNegotiator = function (transportName) {
+        var MasterNegotiator = function (transportName, callCenterName) {
 
             this.transportName = transportName;
-            this.signaling = new modSignaling.createSignalingForMaster();
+            this.signaling = new modSignaling.createSignalingForMaster(callCenterName);
             this.agentSession = new modTransport.Session();
         };
 
@@ -47,8 +47,8 @@ define(
 
 //==================================================================================================
 // Factories
-        function createMasterNegotiator(transportName) {
-            return new MasterNegotiator(transportName);
+        function createMasterNegotiator(transportName, callCenterName) {
+            return new MasterNegotiator(transportName, callCenterName);
         }
 
 //==================================================================================================

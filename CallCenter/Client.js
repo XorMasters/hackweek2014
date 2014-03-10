@@ -16,11 +16,12 @@ define(
 
     function (modNegotiator, EventEmitter) {
 
-        var Client = function (supportContent) {
+        var Client = function (supportContent, callCenterName) {
             // TODO: get unique agent name for each agent
             this.clientName = "Client";
+			this.callCenterName = callCenterName
             this.supportSession = undefined;
-            this.negotiator = modNegotiator.createClientNegotiator(supportContent, this.clientName);
+            this.negotiator = modNegotiator.createClientNegotiator(supportContent, this.clientName, this.callCenterName);
             var thi$ = this;
 
 			this.negotiator.on('localStreamError', function(error){
@@ -64,8 +65,8 @@ define(
 
         Client.prototype.__proto__ = EventEmitter.prototype;
 
-        var createClient = function (supportContent) {
-            return new Client(supportContent);
+        var createClient = function (supportContent, callCenterName) {
+            return new Client(supportContent, callCenterName);
         }
 
         //Client = _Client;
