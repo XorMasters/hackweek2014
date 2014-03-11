@@ -39,6 +39,11 @@ define(
                     thi$.emit('connected', supportSession);
                 });
 
+                supportSession.on('disconnected', function (session) {
+                    console.log('Agent disconnected from support session');
+                    thi$.emit('disconnected', session);
+                });
+
                 supportSession.addTransportWithRemote(this.transportName, thi$.supportRequest.source.callInfo, { video: true, audio:true });
             }
         };

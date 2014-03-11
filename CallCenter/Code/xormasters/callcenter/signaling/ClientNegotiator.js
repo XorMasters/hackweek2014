@@ -43,6 +43,11 @@ define(
                     console.log('Agent connected to support session');
                     thi$.emit('connected', supportSession);
                 });
+				
+                supportSession.on('disconnected', function () {
+                    console.log('Agent disconnected to support session');
+                    thi$.emit('disconnected', supportSession);
+                });				
 
 				supportSession.on('localStreamError', function(error) {
 					thi$.emit('localStreamError', error);

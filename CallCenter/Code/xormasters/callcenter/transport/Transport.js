@@ -152,9 +152,12 @@ define(
             },
 
             close : function(name) {
+				console.log("Closing transport named: " + name);
 				if(this.transports[name] != undefined) {
-                	this.transports[name].stop();
+                	this.transports[name].hangup();
                 	this.transports[name] = undefined;
+				} else {
+					console.error("Could not find transport named " + name);
 				}
             }
         }
@@ -192,6 +195,7 @@ define(
             },
 
             stop: function () {
+				console.log("Stopping the transport");
                 this.isStarted = false;
                 this.pc.close();
                 this.pc = null;
@@ -260,13 +264,6 @@ define(
 
             checkAndConnect: function () {
 
-                //console.log(
-                //        'checkAndConnect ',
-                //        'this.inConnection', this.inConnection , ' ',
-                //        'this.localCallInfo.sessionDescription != null=', this.localCallInfo.sessionDescription != null , ' ',
-                //        'this.localCallInfo.hasAllCandidates=', this.localCallInfo.hasAllCandidates , ' ',
-                //        'this.localCallInfo.hasAllCandidates=', this.remoteCallInfo != null);
-
                 if (!this.inConnection && this.localCallInfo.sessionDescription != null
                         && this.localCallInfo.hasAllCandidates
                         && this.remoteCallInfo != null) {
@@ -330,6 +327,7 @@ define(
 
             this.pc.onaddstream = this.handleRemoteStreamAdded;
             this.pc.onremovestream = this.handleRemoteStreamRemoved;
+			this.pc.oniceconnectionstatechange = this.handleIceConnectionStateChange;
   
             if (this.isInitiator) {
                 try {
@@ -428,15 +426,26 @@ define(
                 var readyState = thi$.sendChannel.readyState;
                 trace('Send channel state is: ' + readyState);
                 thi$.session.emit(readyState == "open" ? 'connected' : 'disconnected');
-                console.log(thi$.pc);
             }
 
             this.handleReceiveChannelStateChange = function () {
                 var readyState = thi$.sendChannel.readyState;
                 trace('Receive channel state is: ' + readyState);
                 thi$.session.emit(readyState == "open" ? 'connected' : 'disconnected');
-                console.log(thi$.pc);
             }
+			
+			this.handleIceConnectionStateChange = function() {
+				if(thi$.pc == null) {
+					console.log("PeerConnection already torn down. Ignoring event");
+					return;
+				}
+				
+                var state = thi$.pc.iceConnectionState;
+                trace('ICE connection state state is: ' + state);
+                if(state === 'disconnected') {
+                	thi$.session.emit(state, thi$.session);	
+                }				
+			}
 
             this.handleIceCandidate = function (event) {
                 console.log('handleIceCandidate event: ', event);
@@ -533,6 +542,16 @@ define(
 
         Transport.prototype.hangup = function () {
             console.log('Hanging up.');
+			var tracks = this.localStream.getAudioTracks();
+			for( var track in tracks ) {
+				tracks[track].stop();
+			}
+			
+			tracks = this.localStream.getVideoTracks();
+			for( var track in tracks ) {
+				tracks[track].stop();
+			}
+			
             this.stop();
             this.sendMessage('bye');
         }

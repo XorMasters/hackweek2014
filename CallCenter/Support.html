@@ -166,6 +166,11 @@ Nunc blandit mauris eu viverra elementum. Nam pellentesque arcu in diam sagittis
             videoElement.src = URL.createObjectURL(stream);
 			audioElement.src = URL.createObjectURL(stream);
 			
+			var start = document.getElementById('start');
+		
+			start.setAttribute('style', 'display: block');
+			start.firstChild.innerHTML = "End Support Call";
+			start.firstChild.onclick = onSupportEnd;
         });
 
         supportClient.on('remoteStreamRemoved', function (stream) {
@@ -192,6 +197,31 @@ Nunc blandit mauris eu viverra elementum. Nam pellentesque arcu in diam sagittis
 			alert('Unable to get access to camera and mic, please be sure both are connected: ' + JSON.stringify(error));
 		});
 		
+		supportClient.on('disconnected', function(session) {
+			if(supportClient == undefined) {
+				return;
+			}
+			
+			var videoElement = document.getElementById("video");
+			var audioElement = document.getElementById("audio");
+			var imageElement = document.getElementById("image");
+			
+			videoElement.setAttribute("style", "display:none");
+			imageElement.setAttribute("style", "display:block");
+			
+			videoElement.src = null;
+			audioElement.src = null;
+			
+			supportClient.hangup();
+			
+			var start = document.getElementById('start');
+			start.setAttribute('style', 'display:block');
+			start.firstChild.innerHTML = 'Contact Support';
+			start.firstChild.onclick = onSupportRequestedAction;
+			
+			supportClient = undefined;
+		});
+		
         supportClient.requestSupport();
     }
 
@@ -201,8 +231,8 @@ Nunc blandit mauris eu viverra elementum. Nam pellentesque arcu in diam sagittis
 		var spinner = document.getElementById("spinner");
 		var start = document.getElementById('start');
 		
-		start.setAttribute('style', 'display: none;')
-		spinner.setAttribute('style', 'display: block;')
+		start.setAttribute('style', 'display: none;');
+		spinner.setAttribute('style', 'display: block;');
 		
         var supportContent = {
             name: clientName,
@@ -211,6 +241,15 @@ Nunc blandit mauris eu viverra elementum. Nam pellentesque arcu in diam sagittis
 
         requestSupport(supportContent);
     }
+	
+	function onSupportEnd() {
+		var start = document.getElementById('start');
+		
+		start.firstChild.innerHTML = "Contact Support";
+		start.firstChild.onclick = onSupportRequestedAction;
+		
+		supportClient.hangup();
+	}
 
     </script>
 

@@ -82,6 +82,11 @@ define(
                         }
 
                     });
+					
+					thi$.supportNegotiator.on('disconnected', function(session){
+						thi$.emit('disconnected', session);
+					});
+					
                     thi$.supportNegotiator.connect();
                 });
 
@@ -101,8 +106,9 @@ define(
             },
 
             hangupSupportSession: function () {
-                if (this.supportSession != undefined) {
-                    this.supportSession.close();
+				console.log("Hanging up: ", this.supportSession );
+                if (this.supportSession != undefined && this.supportSession.transports.support != undefined) {
+                    this.supportSession.close('support');
                     this.supportSession = undefined;
                     this.supportNegotiator = undefined;
                 }
@@ -110,11 +116,6 @@ define(
 
             hangup: function () {
                 this.hangupSupportSession();
-                if (this.callQueue != undefined) {
-                    this.callQueue.stop();
-                    this.callQueue = undefined;
-                }
-                this.masterNegotiator = undefined;
             },
 
             acceptRequest: function (supportRequest) {

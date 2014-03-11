@@ -30,8 +30,14 @@
     text-align: center;
   }
   
+  #buttons {
+  	vertical-align: top;
+	text-align: center;
+  }
+  
   #agent, #client {
     vertical-align: top;
+	height: 300px;
   }
   
   #copyright {
@@ -94,7 +100,7 @@
 
 <table id='main'>
   <tr>
-    <td id='queue'>
+    <td id='queue' rowspan='2'>
       <div class='header'>Call Queue</div>
       <div id="queue-entries"></div>
     </td>
@@ -115,6 +121,10 @@
       </div>
       <div class='title' id='customer'>Customer</div>
     </td>
+  </tr>
+  
+  <tr>
+  	<td colspan='2' id='buttons'><button id='hangup' onclick='hangup()'>End Support Call</button></td>
   </tr>
 </table>
 
@@ -209,6 +219,11 @@
 		
 		takingEntry = id;
     }
+	
+	function hangup() {
+		console.log("Hanging up support call");
+		supportAgent.hangup();
+	}
 
     require(["Agent"], function (Agent) {
 
@@ -276,6 +291,30 @@
 
             videoElement.src = null;
         });
+		
+		supportAgent.on('disconnected', function(session) {
+			var videoElement = document.getElementById("remoteVideo");
+			var audioElement = document.getElementById("audio");
+			var imageElement = document.getElementById("remoteImage");
+			
+			videoElement.setAttribute("style", "display:none");
+			imageElement.setAttribute("style", "display:block");
+			
+			videoElement.src = null;
+			audioElement.src = null;
+			
+			videoElement = document.getElementById("localVideo");
+			imageElement = document.getElementById("localImage");
+			
+			videoElement.setAttribute("style", "display:none");
+			audioElement = document.getElementById("audio");
+			imageElement.setAttribute("style", "display:block");
+			
+			videoElement.src = null;
+			audioElement.src = null;
+			
+			supportAgent.hangup();
+		});
 
         //This function will be called when all the dependencies
         //listed above are loaded. Note that this function could

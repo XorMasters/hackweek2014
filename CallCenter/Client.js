@@ -46,6 +46,11 @@ define(
                 //TODO
                 //session.on('remoteMediaStreamAdded');
             });
+			
+			this.negotiator.on('disconnected', function(session){
+				console.log('Disconnected from support session');
+				thi$.emit('disconnected', session);
+			})
         };
 
         Client.prototype = {
@@ -56,7 +61,7 @@ define(
         
             hangup : function () {
                 if (this.supportSession != undefined) {
-                    this.supportSession.close();
+                    this.supportSession.close('support');
                     this.supportSession = undefined;
                     this.negotiator = undefined;
                 }
