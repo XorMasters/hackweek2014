@@ -21,6 +21,7 @@ define(
 
         var Agent = function (agentName, callCenterName) {
             this.agentName = agentName;
+			this.role = 'Agent';
 			this.callCenterName = callCenterName;
             this.masterNegotiator = modNegotiator.createAgentNegotiator('call_queue', agentName, callCenterName);
             this.supportNegotiator = undefined;

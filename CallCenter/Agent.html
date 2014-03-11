@@ -95,6 +95,43 @@
     margin-bottom: 0.65em;
     color: darkgray;
   }
+  
+  #call-center-title {
+  	float: left;
+	width: 8em;
+	text-align: right;
+	margin-right: 1em;
+  }
+  
+  #agent-title {
+  	float: left;
+	width: 8em;
+	text-align: right;
+	margin-right: 1em;
+  }
+  
+  #call-center {
+	text-align: left;
+	height: 25px;
+  }
+  
+  #agent {
+	text-align: left;
+	height:25px;
+  }
+  
+  #agent-info {
+  	margin-top: 2em;
+  }
+  
+  #call-center-join {
+  	margin-top: 1em;
+  }
+  
+  #hangup {
+  	display: none;
+  }
+  
   </style>
 <body>
 
@@ -102,6 +139,11 @@
   <tr>
     <td id='queue' rowspan='2'>
       <div class='header'>Call Queue</div>
+	  <div id='agent-info'>
+	  	<div id='call-center'><div id='call-center-title'>Call Center: </div><input type='text' id='call-center-name'/></div>
+	  	<div id='agent'><div id='agent-title'>Agent Name:</div><input type='text' id='agent-name'/></div>
+	  	<div id='call-center-join'><button id='btn-agent-join' onclick='joinCallCenter()'>Join Call Center</button></div>
+	  </div>
       <div id="queue-entries"></div>
     </td>
     
@@ -139,8 +181,6 @@
     var supportAgent = undefined;
     var customerEntry = undefined;
     var takingEntry = undefined;
-	
-	var name = window.location.search.slice(1);
 	
     window.onbeforeunload = function (e) {
         if (supportAgent != undefined) {
@@ -225,10 +265,13 @@
 		supportAgent.hangup();
 	}
 
+	function joinCallCenter() {
     require(["Agent"], function (Agent) {
 
-		console.log("name: " + name);
-        supportAgent = new Agent.Agent("Agent", name);
+		var agentName = document.getElementById('agent-name').value;
+		var callCenterName = document.getElementById('call-center-name').value;
+		
+        supportAgent = new Agent.Agent(agentName, callCenterName);
         supportAgent.connectToMaster();
         supportAgent.on('queue_updated', populateQueue);
 
@@ -279,6 +322,9 @@
             videoElement.src = URL.createObjectURL(stream);
 			audioElement.src = URL.createObjectURL(stream);
 			
+			var endBtn = document.getElementById('hangup');
+			endBtn.setAttribute('style', 'display: inline;');
+			
         });
 
         supportAgent.on('remoteStreamRemoved', function (stream) {
@@ -291,6 +337,12 @@
 
             videoElement.src = null;
         });
+		
+		supportAgent.masterNegotiator.on('connected', function(session) {
+			console.log('Connected to master session');
+			var agentInfo = document.getElementById('agent-info');
+			agentInfo.setAttribute('style', 'display: none');			
+		});
 		
 		supportAgent.on('disconnected', function(session) {
 			var videoElement = document.getElementById("remoteVideo");
@@ -313,6 +365,9 @@
 			videoElement.src = null;
 			audioElement.src = null;
 			
+			var endBtn = document.getElementById('hangup');
+			endBtn.setAttribute('style', 'display: none;');
+			
 			supportAgent.hangup();
 		});
 
@@ -321,7 +376,7 @@
         //be called before the page is loaded.
         //This callback is optional.
     });
-
+	}
 
 </script>
 

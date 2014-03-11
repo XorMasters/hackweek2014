@@ -25,7 +25,7 @@ define(
                 masterSession.on('localCallInfoAvailable', function (localCallInfo) {
                     console.log('Received local call info. Posting agent request...');
                     var localAgentContact =
-                            new modContact.Contact(thi$.agentName, "Master session request from agent " + thi$.agentName, localCallInfo);
+                            new modContact.Contact(thi$.agentName, 'Agent', "Master session request from agent " + thi$.agentName, localCallInfo);
                     thi$.signaling.postAgentRequest(localAgentContact);
                 });
 

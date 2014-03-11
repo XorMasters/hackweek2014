@@ -31,7 +31,7 @@ define(
                 supportSession.on('localCallInfoAvailable', function (localCallInfo) {
                     console.log('Received WebRTC local call info for support session. Posting support request...');
                     var clientContact =
-                            new modContact.Contact(thi$.clientName, "Support client " + thi$.clientName, localCallInfo);
+                            new modContact.Contact(thi$.clientName, 'Client', "Support client " + thi$.clientName, localCallInfo);
                     var supportRequest = {
                         contact : clientContact,
                         content : thi$.supportContent

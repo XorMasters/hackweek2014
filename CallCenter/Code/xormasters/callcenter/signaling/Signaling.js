@@ -27,7 +27,7 @@ define(
                     var agentContact = snapshot.child('source').val();
                     console.log('Received child_added for destination: ', destination, ' source ', agentContact);
                     if ((destination === localDestination)
-                            && (agentContact.name.indexOf('Agent') == 0)) {
+                            && (agentContact.role.indexOf('Agent') == 0)) {
                         thi$.emit('agent_request', agentContact);
                         snapshot.ref().remove();
                     }
@@ -35,7 +35,7 @@ define(
                     var masterContact = snapshot.child('source').val();
                     console.log('Received child_added for destination: ', destination, ' source ', masterContact);
                     if ((destination === localDestination)
-                            && (masterContact.name.indexOf('Master') == 0)) {
+                            && (masterContact.role.indexOf('Master') == 0)) {
                         thi$.emit('master_accepted', masterContact);
                         snapshot.ref().remove();
                     }
@@ -91,7 +91,7 @@ define(
                     var clientContact = snapshot.child('source').val();
                     console.log('ClientSignaling: Received child_added for destination: ', destination, ' source ', clientContact);
                     if ((destination === localDestination)
-                            && (clientContact.name.indexOf('Client') == 0)) {
+                            && (clientContact.role.indexOf('Client') == 0)) {
 
                         var supportRequest = {
                             status : 'waiting',
@@ -108,7 +108,7 @@ define(
                     var destination = snapshot.child('destination').val();
                     console.log('ClientSignaling: Received child_added for destination: ', destination, ' source ', agentContact);
                     if ((destination === localDestination)
-                            && (agentContact.name.indexOf('Agent') == 0)) {
+                            && (agentContact.role.indexOf('Agent') == 0)) {
 
                         var supportRequest = {
                             source: agentContact,

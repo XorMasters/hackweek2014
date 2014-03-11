@@ -20,13 +20,13 @@ define(
             
             agentSession.once('localCallInfoAvailable', function (localCallInfo) {
                 console.log('Received local call info. Accepting agent request...');
-                var localContact = new modContact.Contact("Master", "Test answer made by Master", localCallInfo);
+                var localContact = new modContact.Contact("Master", 'Master', "Test answer made by Master", localCallInfo);
                 negotiator.signaling.acceptAgentRequest(agentContact, localContact);
             });
 
             agentSession.once('connected', function () {
                 console.log('Master connected to master session for agent', agentSession);
-                negotiator.emit('connected', agentSession);
+                negotiator.emit('connected', {session: agentSession, contact: agentContact});
             });
 
             agentSession.addTransportWithRemote(negotiator.transportName + (new Date().getTime()), agentContact.callInfo);

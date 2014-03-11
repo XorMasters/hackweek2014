@@ -11,6 +11,7 @@ require.config({
 var masterNegotiator = undefined;
 var callQueue = undefined;
 var supportRequestSource = undefined;
+var agents = {};
 var name = window.location.search.slice(1);
 
 console.log("name: " + name);
@@ -53,8 +54,11 @@ require(
         //    callQueue.update(entry);
         //}
 
-        masterNegotiator.on('connected', function (agentSession) {
+        masterNegotiator.on('connected', function (agent) {
 
+			var agentSession = agent.session;
+			var agentContact = agent.contact;
+			
 			if( callQueue == undefined ) {
             	callQueue = new modCallQueue.CallQueue(true, agentSession);
             	callQueue.start();
@@ -64,11 +68,13 @@ require(
 			callQueue.sendUpdate();
 
 			console.log('AgentSession - ', agentSession)
+			console.log('AgentContact - ', agentContact)
+			
 			var agentList = document.getElementById('agents-list');
 
 			var keys = Object.keys(agentSession.transports)
 			var transport = keys[keys.length - 1]
-			addAgentToList({transport: transport, timestamp: new Date(), state: 'connected'})
+			addAgentToList({transport: transport, timestamp: new Date(), contact: agentContact, state: 'connected'})
 			
             //setTimeout(function () {
             //    updateQueue();
@@ -77,13 +83,25 @@ require(
         })
 
 		function addAgentToList(agent) {
+			agents[agent.contact.name] = agent.contact;
+			
 			var agentsList = document.getElementById('agents-list')
+			var agentEntry = document.getElementById(agent.contact.name);
+			if(agentEntry != null) {
+				agentsList.removeChild(agentEntry);
+			}
 			
 			var agentDiv = document.createElement('div')
 			agentDiv.setAttribute('class', 'agent-entry')
+			agentDiv.setAttribute('id', agent.contact.name);
 			
 			var nameDiv = document.createElement('div')
 			nameDiv.setAttribute('class', 'agent-entry-name')
+			nameDiv.innerHTML = 'Agent name: ' + agent.contact.name
+			agentDiv.appendChild(nameDiv);
+			
+			nameDiv = document.createElement('div')
+			nameDiv.setAttribute('class', 'agent-entry-transport-name')
 			nameDiv.innerHTML = 'Transport name: ' + agent.transport
 			agentDiv.appendChild(nameDiv);
 			

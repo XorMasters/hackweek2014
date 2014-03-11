@@ -26,7 +26,7 @@ define(
                 supportSession.on('localCallInfoAvailable', function (localCallInfo) {
                     console.log('AgentSupportNegotiator: Received local call info. Posting support response...');
                     var localAgentContact =
-                            new modContact.Contact(thi$.agentName, "Support session request from agent " + thi$.agentName, localCallInfo);
+                            new modContact.Contact(thi$.agentName, 'Agent', "Support session request from agent " + thi$.agentName, localCallInfo);
                     thi$.signaling.acceptClientRequest(thi$.supportRequest, localAgentContact);
                 });
 
