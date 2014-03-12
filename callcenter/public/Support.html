@@ -123,7 +123,12 @@ Nunc blandit mauris eu viverra elementum. Nam pellentesque arcu in diam sagittis
 
 <script src="https://cdn.firebase.com/v0/firebase.js"></script>
 <script src="Lib/require.js"></script>
+<script src="Lib/jquery-2.1.0.js"></script>
+
 <script>
+$( document ).ready(function() {
+     console.log('Document Ready!');
+});
     var modClient = undefined;
     var supportClient = undefined;
 	var callCenterName = "gcs-call-center";
@@ -154,45 +159,27 @@ Nunc blandit mauris eu viverra elementum. Nam pellentesque arcu in diam sagittis
         supportClient = modClient.createClient(supportContent, callCenterName);
 
         supportClient.on('remoteStreamAdded', function (stream) {
-            var videoElement = document.getElementById("video");
-			var audioElement = document.getElementById("audio");
-            var imageElement = document.getElementById("image");
-			var spinner = document.getElementById("spinner");
+			$('#image').hide();
+			$('#spinner').hide();
 			
-            videoElement.setAttribute("style", "display:block;");
-            imageElement.setAttribute("style", "display:none;");
-			spinner.setAttribute('style', 'display: none;');
-			
-            videoElement.src = URL.createObjectURL(stream);
-			audioElement.src = URL.createObjectURL(stream);
-			
-			var start = document.getElementById('start');
-		
-			start.setAttribute('style', 'display: block');
-			start.firstChild.innerHTML = "End Support Call";
-			start.firstChild.onclick = onSupportEnd;
+			$('#video').attr('src', URL.createObjectURL(stream)).show();						
+			$('#audio').attr('src', URL.createObjectURL(stream));
+					
+			$('#start').show();
+			$('#start button:first').html("End Support Call");
+			$('#start button:first').attr("onclick", "onSupportEnd()");
         });
 
         supportClient.on('remoteStreamRemoved', function (stream) {
-
-            var videoElement = document.getElementById("video");
-            var imageElement = document.getElementById("image");
-
-            videoElement.setAttribute("style", "display:none");
-            imageElement.setAttribute("style", "display:block");
-
-            videoElement.src = null;
-
+            $('#video').attr('src', null).hide();
+            $('#image').show();
         });
 
 		supportClient.on('localStreamError', function(error){
 			console.error('Unable to connect to local media', error);
 			
-			var spinner = document.getElementById("spinner");
-			var button = document.getElementById("start");
-			
-			spinner.setAttribute("style", "display:none");
-			button.setAttribute("style", "display:block");
+			$('#spinner').hide();
+			$('#start').show();
 			
 			alert('Unable to get access to camera and mic, please be sure both are connected: ' + JSON.stringify(error));
 		});
@@ -202,22 +189,16 @@ Nunc blandit mauris eu viverra elementum. Nam pellentesque arcu in diam sagittis
 				return;
 			}
 			
-			var videoElement = document.getElementById("video");
-			var audioElement = document.getElementById("audio");
-			var imageElement = document.getElementById("image");
+			$('#image').show();
 			
-			videoElement.setAttribute("style", "display:none");
-			imageElement.setAttribute("style", "display:block");
-			
-			videoElement.src = null;
-			audioElement.src = null;
+			$('#video').attr('src', null).hide();
+			$('#audio').attr('src', null);
 			
 			supportClient.hangup();
 			
-			var start = document.getElementById('start');
-			start.setAttribute('style', 'display:block');
-			start.firstChild.innerHTML = 'Contact Support';
-			start.firstChild.onclick = onSupportRequestedAction;
+			$('#start').show();
+			$('#start button:first').html('Contact Support');
+			$('#start button:first').attr('onclick', 'onSupportRequestedAction()');
 			
 			supportClient = undefined;
 		});
@@ -226,13 +207,11 @@ Nunc blandit mauris eu viverra elementum. Nam pellentesque arcu in diam sagittis
     }
 
     function onSupportRequestedAction() {
-        var clientName = document.getElementById("name").value;
-        var description = document.getElementById("desc").value;
-		var spinner = document.getElementById("spinner");
-		var start = document.getElementById('start');
+        var clientName = $("#name").val();
+        var description = $("#desc").val();
 		
-		start.setAttribute('style', 'display: none;');
-		spinner.setAttribute('style', 'display: block;');
+		$('#start').hide();
+		$('#spinner').show();
 		
         var supportContent = {
             name: clientName,
@@ -243,15 +222,13 @@ Nunc blandit mauris eu viverra elementum. Nam pellentesque arcu in diam sagittis
     }
 	
 	function onSupportEnd() {
-		var start = document.getElementById('start');
-		
-		start.firstChild.innerHTML = "Contact Support";
-		start.firstChild.onclick = onSupportRequestedAction;
+		$('#start button:first').html("Contact Support");
+		$('#start button:first').attr('onclick', 'onSupportRequestedAction()');
 		
 		supportClient.hangup();
 	}
 
-    </script>
+</script>
 
 </html>
 

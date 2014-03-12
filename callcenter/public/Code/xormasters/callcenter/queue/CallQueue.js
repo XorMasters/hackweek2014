@@ -85,6 +85,7 @@ define(
                 var queue = new Array();
                 for( var i = 0; i < this.call_queue.length; ++i ) {
                   var entry = this.call_queue[i];
+				  console.log('entry => ', entry);
                   queue.push( { content: {
                                   name: entry.content.name,
                                   summary: entry.content.summary

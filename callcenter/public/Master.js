@@ -1,11 +1,13 @@
-console.log("Inside Master Test");
-
 require.config({
     paths: {
         "EventEmitter": "../Lib/EventEmitter",
         "WebRtcAdapter": "../Lib/adapter"
     },
     baseUrl: './Code'
+});
+
+$( document ).ready(function() {
+     console.log('Document Ready!');
 });
 
 var masterNegotiator = undefined;
@@ -21,10 +23,8 @@ var onload = function() {
 		console.log("No name to call center given");
 		alert("No name is given for the call center. Reload the page with a call center name")
 	}
-	var callCenterName = document.getElementById('call-center-name');
-	if(callCenterName) {
-		callCenterName.innerHTML += name;
-	}
+	
+	$('#call-center-name').html($('#call-center-name').html() + name);
 }
 
 require(
@@ -45,15 +45,6 @@ require(
             }
         });
 
-        //function updateQueue() {
-        //    var entry = {
-        //        status: 'waiting',
-        //        content: 'My question',
-        //        from: 'client X'
-        //    };
-        //    callQueue.update(entry);
-        //}
-
         masterNegotiator.on('connected', function (agent) {
 
 			var agentSession = agent.session;
@@ -67,92 +58,55 @@ require(
 			
 			callQueue.sendUpdate();
 
-			console.log('AgentSession - ', agentSession)
-			console.log('AgentContact - ', agentContact)
-			
-			var agentList = document.getElementById('agents-list');
-
 			var keys = Object.keys(agentSession.transports)
 			var transport = keys[keys.length - 1]
-			addAgentToList({transport: transport, timestamp: new Date(), contact: agentContact, state: 'connected'})
-			
-            //setTimeout(function () {
-            //    updateQueue();
-            //    setInterval(function () { updateQueue(); }, 1000);
-            //}, 0);
+			addAgentToList({transport: transport, timestamp: new Date(), contact: agentContact, state: 'connected'})	
         })
 
 		function addAgentToList(agent) {
 			agents[agent.contact.name] = agent.contact;
 			
-			var agentsList = document.getElementById('agents-list')
-			var agentEntry = document.getElementById(agent.contact.name);
-			if(agentEntry != null) {
-				agentsList.removeChild(agentEntry);
-			}
+			$('.agent-entry').remove("[id='" + agent.contact.name + "']");
 			
-			var agentDiv = document.createElement('div')
-			agentDiv.setAttribute('class', 'agent-entry')
-			agentDiv.setAttribute('id', agent.contact.name);
+			var agentDiv = $('<div/>', {'class': 'agent-entry', 
+			                           'id': agent.contact.name});
+									   
+			agentDiv.append($('<div/>', {'class': 'agent-entry-name', 
+			                             html: 'Agent name: ' + agent.contact.name}));			
+			agentDiv.append($('<div/>', {'class': 'agent-entry-transport-name', 
+			                             html: 'Transport name: ' + agent.transport}));			
+			agentDiv.append($('<div/>', {'class': 'agent-entry-time', 
+			                              html: 'Connected to call center: ' + agent.timestamp.toLocaleString()}));			
+			agentDiv.append($('<div/>', {'class': 'agent-entry-state', 
+			                             html: 'State: ' + agent.state}));
 			
-			var nameDiv = document.createElement('div')
-			nameDiv.setAttribute('class', 'agent-entry-name')
-			nameDiv.innerHTML = 'Agent name: ' + agent.contact.name
-			agentDiv.appendChild(nameDiv);
-			
-			nameDiv = document.createElement('div')
-			nameDiv.setAttribute('class', 'agent-entry-transport-name')
-			nameDiv.innerHTML = 'Transport name: ' + agent.transport
-			agentDiv.appendChild(nameDiv);
-			
-			var timeDiv = document.createElement('div')
-			timeDiv.setAttribute('class', 'agent-entry-time')
-			timeDiv.innerHTML = 'Connected to call center: ' + agent.timestamp.toLocaleString()
-			agentDiv.appendChild(timeDiv);
-			
-			var stateDiv = document.createElement('div')
-			stateDiv.setAttribute('class', 'agent-entry-state')
-			stateDiv.innerHTML = 'State: ' + agent.state
-			agentDiv.appendChild(stateDiv);
-			
-			agentsList.appendChild(agentDiv);
+			$('#agents-list').append(agentDiv);
 		}
 		
 	    function populateQueue(entries) {
+	        $("#calls-list").empty();
 
-	        var queue = document.getElementById("calls-list");
-	        queue.innerHTML = "";
 	        for (var idx = 0; idx < entries.length; ++idx) {
-	            var newDiv = document.createElement('div');
+				console.log("entry => ", entries[idx])
 				var id = 'entry' + idx;
 			
 	            var status = entries[idx].status.toLowerCase();
-	            newDiv.setAttribute('class', 'queue-entry-' + status);
-	            newDiv.setAttribute('id', id);
-
-	            var nameDiv = document.createElement('div')
-	            nameDiv.setAttribute('class', 'queue-entry-name');
-	            nameDiv.innerHTML = "Name: " + entries[idx].content.name;
-	            newDiv.appendChild(nameDiv);
-
-	            var summDiv = document.createElement('div')
-	            summDiv.setAttribute('class', 'queue-entry-summary');
-	            summDiv.innerHTML = "Summary: " + entries[idx].content.summary;
-	            newDiv.appendChild(summDiv);
-
-	            var statDiv = document.createElement('div')
-	            statDiv.setAttribute('class', 'queue-entry-status');
-	            statDiv.innerHTML = "Status: " + entries[idx].status;
-	            newDiv.appendChild(statDiv);
+	            var newDiv = $('<div/>', {'class': 'queue-entry-' + status, 
+				                          'id': id});
+										  
+	            newDiv.append($('<div/>', {'class': 'queue-entry-name', 
+				                            html: "Name: " + entries[idx].content.name}));
+	            newDiv.append($('<div/>', {'class': 'queue-entry-summary', 
+				                           html: "Summary: " + entries[idx].content.summary}));
+	            newDiv.append($('<div/>', {'class': 'queue-entry-status', 
+				                           html: "Status: " + entries[idx].status}));
 
 	            if(entries[idx].status == 'waiting') {
-	              var waitDiv = document.createElement('div')
-	              waitDiv.setAttribute('class', 'queue-entry-wait');
-	              waitDiv.innerHTML = "Waiting Since: " + new Date(entries[idx].timestamp).toLocaleString();
-	              newDiv.appendChild(waitDiv);
-			  
+	              newDiv.append($('<div/>', {'class': 'queue-entry-wait', 
+				                             html: "Waiting Since: " + new Date(entries[idx].timestamp).toLocaleString()}));			  
 	            }
-	            queue.appendChild(newDiv);
+				
+	            $("#calls-list").append(newDiv);
 	        }
 	    }
 		

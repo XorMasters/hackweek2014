@@ -176,8 +176,12 @@
 
 <script src="https://cdn.firebase.com/v0/firebase.js"></script>
 <script src="Lib/require.js"></script>
-    
+<script src="Lib/jquery-2.1.0.js"></script>
 <script>
+$( document ).ready(function() {
+     console.log('Document Ready!');
+});
+
     var supportAgent = undefined;
     var customerEntry = undefined;
     var takingEntry = undefined;
@@ -191,70 +195,43 @@
 
     function populateQueue(entries) {
 
-        var queue = document.getElementById("queue-entries");
-        queue.innerHTML = "";
+		$('#queue-entries').empty();
         for (var idx = 0; idx < entries.length; ++idx) {
-            var newDiv = document.createElement('div');
 			var id = 'entry' + idx;
+            var status = entries[idx].status.toLowerCase();		
+            var newDiv = $("<div/>", { id: id, "class": 'queue-entry-' + status});
 			
-            var status = entries[idx].status.toLowerCase();
-            newDiv.setAttribute('class', 'queue-entry-' + status);
-            newDiv.setAttribute('id', id);
-
-            var nameDiv = document.createElement('div')
-            nameDiv.setAttribute('class', 'queue-entry-name');
-            nameDiv.innerHTML = "Name: " + entries[idx].content.name;
-            newDiv.appendChild(nameDiv);
-
-            var summDiv = document.createElement('div')
-            summDiv.setAttribute('class', 'queue-entry-summary');
-            summDiv.innerHTML = "Summary: " + entries[idx].content.summary;
-            newDiv.appendChild(summDiv);
-
-            var statDiv = document.createElement('div')
-            statDiv.setAttribute('class', 'queue-entry-status');
-            statDiv.innerHTML = "Status: " + entries[idx].status;
-            newDiv.appendChild(statDiv);
+            newDiv.append($('<div/>', {"class": 'queue-entry-name', 
+			                           html: "Name: " + entries[idx].content.name}));
+            newDiv.append($('<div/>', {"class": 'queue-entry-summary', 
+			                           html: "Summary: " + entries[idx].content.summary}));
+            newDiv.append($('<div/>', {'class': 'queue-entry-status', 
+			                           html: "Status: " + entries[idx].status}));
 
             if(entries[idx].status == 'waiting') {
-              var waitDiv = document.createElement('div')
-              waitDiv.setAttribute('class', 'queue-entry-wait');
-              waitDiv.innerHTML = "Waiting Since: " + new Date(entries[idx].timestamp).toLocaleString();
-              newDiv.appendChild(waitDiv);
-			  
-			  var takeDiv = document.createElement('div');
-			  takeDiv.setAttribute('id', 'button-' + id)
-  			  takeDiv.innerHTML = '<button onclick="takeCall(\''+id+'\')">Take this Call</button>';
-  			  newDiv.appendChild(takeDiv);
-			  
-			  var spinDiv = document.createElement('div');
-			  spinDiv.setAttribute('style', 'display: none;')
-			  spinDiv.setAttribute('id', 'img-' + id)
-			  spinDiv.innerHTML = '<img src=\'Images/spinner.gif\'>'
-			  newDiv.appendChild(spinDiv)
+              newDiv.append($('<div/>', {'class': 'queue-entry-wait', 
+			                             html: "Waiting Since: " + new Date(entries[idx].timestamp).toLocaleString()}));
+  			  newDiv.append($('<div/>', {'id': 'button-' + id, 
+			                             html: '<button onclick="takeCall(\''+id+'\')">Take this Call</button>'}));
+			  newDiv.append($('<div/>', {'style': 'display: none;', 
+			                             'id': 'img-' + id, 
+										 html: '<img src=\'Images/spinner.gif\'>'}));
             }
 
-            var jsonDiv = document.createElement('div')
-            jsonDiv.setAttribute('class', 'queue-entry-json');
-            jsonDiv.innerHTML = JSON.stringify(entries[idx]);
-            newDiv.appendChild(jsonDiv);
+            newDiv.append($('<div/>', {'class': 'queue-entry-json', 
+			                           html: JSON.stringify(entries[idx])}));
             
-            queue.appendChild(newDiv);
+            $('#queue-entries').append(newDiv);
         }
     }
 
     function takeCall(id) {
-        var entry = document.getElementById(id);
-        console.log("Clicked");
-        console.log(entry.lastChild.innerHTML);
-
-		var button = document.getElementById('button-'+id)
-		var img = document.getElementById('img-'+id)
+        var entry = $("#" + id + " div").last();
 		
-		button.setAttribute('style', 'display: none')
-		img.setAttribute('style', 'display: block')
+		$('#button-'+id).hide();
+		$('#img-'+id).show();
 		
-        customerEntry = JSON.parse(entry.lastChild.innerHTML)
+        customerEntry = JSON.parse(entry.text())
         supportAgent.acceptRequest(customerEntry);
 		
 		takingEntry = id;
@@ -268,105 +245,60 @@
 	function joinCallCenter() {
     require(["Agent"], function (Agent) {
 
-		var agentName = document.getElementById('agent-name').value;
-		var callCenterName = document.getElementById('call-center-name').value;
+		var agentName = $('#agent-name').val();
+		var callCenterName = $('#call-center-name').val();
 		
         supportAgent = new Agent.Agent(agentName, callCenterName);
         supportAgent.connectToMaster();
         supportAgent.on('queue_updated', populateQueue);
 
         supportAgent.on('localStreamAdded', function (stream) {
-            var videoElement = document.getElementById("localVideo");
-            var imageElement = document.getElementById("localImage");
-
-            videoElement.setAttribute("style", "display:block;");
-            imageElement.setAttribute("style", "display:none");
-
-            videoElement.src = URL.createObjectURL(stream);
+			$('#localVideo').attr('src', URL.createObjectURL(stream)).show();
+			$('#localImage').hide();
         });
 
         supportAgent.on('localStreamRemoved', function (stream) {
-
-            var videoElement = document.getElementById("localVideo");
-            var imageElement = document.getElementById("localImage");
-
-            videoElement.setAttribute("style", "display:none");
-            imageElement.setAttribute("style", "display:block");
-
-            videoElement.src = null;
+			$('#localVideo').hide().attr('src', null);
+			$('#localImage').show();
         });
 		
 		supportAgent.on('localStreamError', function(error) {
 			console.error('Unable to connect to local media', error);
 			
 			if(takingEntry != undefined) {
-				var spinnerElement = document.getElementById("img-"+takingEntry);
-				var buttonElement = document.getElementById("button-"+takingEntry);
-				
-				spinnerElement.setAttribute("style", "display:none");				
-				buttonElement.setAttribute("style", "display:block");				
+				$('#img-'+takingEntry).hide();
+				$('#button-'+takingEntry).show();
 			}
+			
 			alert('Unable to get access to camera and mic, please be sure both are connected: ' + JSON.stringify(error));
 		})
 
         supportAgent.on('remoteStreamAdded', function (stream) {
-            var videoElement = document.getElementById("remoteVideo");
-            var audioElement = document.getElementById("audio");
-            var imageElement = document.getElementById("remoteImage");
-            var customer = document.getElementById("customer");
-            
-            videoElement.setAttribute("style", "display:block;");
-            imageElement.setAttribute("style", "display:none");
-            customer.innerHTML = customerEntry.content.name;
-            
-            videoElement.src = URL.createObjectURL(stream);
-			audioElement.src = URL.createObjectURL(stream);
-			
-			var endBtn = document.getElementById('hangup');
-			endBtn.setAttribute('style', 'display: inline;');
-			
+			$('#remoteImage').hide();
+			$('#hangup').show();
+			$('#remoteVideo').attr('src', URL.createObjectURL(stream)).show();
+			$('#audio').attr('src', URL.createObjectURL(stream));			
         });
 
         supportAgent.on('remoteStreamRemoved', function (stream) {
-
-            var videoElement = document.getElementById("remoteVideo");
-            var imageElement = document.getElementById("remoteImage");
-
-            videoElement.setAttribute("style", "display:none");
-            imageElement.setAttribute("style", "display:block");
-
-            videoElement.src = null;
+			$('#remoteVideo').hide().attr('src', null);
+			$('#remoteImage').show();
         });
 		
 		supportAgent.masterNegotiator.on('connected', function(session) {
 			console.log('Connected to master session');
-			var agentInfo = document.getElementById('agent-info');
-			agentInfo.setAttribute('style', 'display: none');			
+			$('#agent-info').hide();
 		});
 		
 		supportAgent.on('disconnected', function(session) {
-			var videoElement = document.getElementById("remoteVideo");
-			var audioElement = document.getElementById("audio");
-			var imageElement = document.getElementById("remoteImage");
+			$('#remoteImage').show();
+			$('#remoteVideo').hide().attr('src', null);
+			$('#audio').attr('src', null);
 			
-			videoElement.setAttribute("style", "display:none");
-			imageElement.setAttribute("style", "display:block");
-			
-			videoElement.src = null;
-			audioElement.src = null;
-			
-			videoElement = document.getElementById("localVideo");
-			imageElement = document.getElementById("localImage");
-			
-			videoElement.setAttribute("style", "display:none");
-			audioElement = document.getElementById("audio");
-			imageElement.setAttribute("style", "display:block");
-			
-			videoElement.src = null;
-			audioElement.src = null;
-			
-			var endBtn = document.getElementById('hangup');
-			endBtn.setAttribute('style', 'display: none;');
+			$('#localImage').show();
+			$('#localVideo').hide().attr('src', null);
+
+			$('#hangup').hide();
 			
 			supportAgent.hangup();
 		});
