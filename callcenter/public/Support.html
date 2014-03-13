@@ -47,9 +47,81 @@
 	  display: none;
   }
   
+  #tnps-dialog {
+	  display: none;
+  }
+  
+  div.table {
+	margin-top: 1em;
+	width: 500px;
+  	display: table;
+  }
+  
+  div.row {
+  	display: table-row;
+  }
+  
+  div.tnps-desc {
+	  width: 8em;
+	  height: 2em;
+	  display: table-cell;
+	  vertical-align: bottom;
+	  text-align: center;
+	  font-size: 0.875em;
+  }   
+  
+  div.tnps-val {
+	  width: 8em;
+	  text-align: center;
+	  display: table-cell;
+	  border: 1px dotted black;
+  }   
+  
   </style>
+ 
 <body>
 
+<div id='tnps-dialog' title='Transactional NPS'>
+	  <div>How likely are you to recommend our product to a friend?</div>
+	  
+  	  <form>
+	  <div class='table'> 
+	  <div class='row'>
+		  <div class='tnps-desc text ui-widget-content ui-corner-all'>Very Likely</div>
+		  <div class='tnps-desc text ui-widget-content ui-corner-all'>Likely</div>
+		  <div class='tnps-desc text ui-widget-content ui-corner-all'>Somewhat Likely</div>
+		  <div class='tnps-desc text ui-widget-content ui-corner-all'>Neither</div>
+		  <div class='tnps-desc text ui-widget-content ui-corner-all'>Somewhat Unlikely</div>
+		  <div class='tnps-desc text ui-widget-content ui-corner-all'>Unlikely</div>
+		  <div class='tnps-desc text ui-widget-content ui-corner-all'>Very Unlikely</div>
+	  </div>
+	  <div class='row'>
+	  	<div class='tnps-val'>
+			<input type='radio' name='tnps-score' value='6'/>
+		</div>
+	  	<div class='tnps-val'>
+			<input type='radio' name='tnps-score' value='5'/>
+		</div>
+	  	<div class='tnps-val'>
+			<input type='radio' name='tnps-score' value='4'/>
+		</div>
+	  	<div class='tnps-val'>
+			<input type='radio' name='tnps-score' value='3'/>
+		</div>
+	  	<div class='tnps-val'>
+			<input type='radio' name='tnps-score' value='2'/>
+		</div>
+	  	<div class='tnps-val'>
+			<input type='radio' name='tnps-score' value='1'/>
+		</div>
+	  	<div class='tnps-val'>
+			<input type='radio' name='tnps-score' value='0'/>
+		</div>
+	  </div>
+	  </div>
+  </form>
+</div>
+	
 <div id='support'>
   <div align=center>Confused? Get help online.</div>
     <div id="videoDiv" align='center'>
@@ -123,7 +195,16 @@ Nunc blandit mauris eu viverra elementum. Nam pellentesque arcu in diam sagittis
 
 <script src="https://cdn.firebase.com/v0/firebase.js"></script>
 <script src="Lib/require.js"></script>
-<script src="Lib/jquery-2.1.0.js"></script>
+<link rel="stylesheet" href="Lib/themes/base/jquery.ui.all.css">
+<script src="Lib/jquery-1.10.2.js"></script>
+<script src="Lib/ui/jquery.ui.core.js"></script>
+<script src="Lib/ui/jquery.ui.widget.js"></script>
+<script src="Lib/ui/jquery.ui.mouse.js"></script>
+<script src="Lib/ui/jquery.ui.draggable.js"></script>
+<script src="Lib/ui/jquery.ui.position.js"></script>
+<script src="Lib/ui/jquery.ui.resizable.js"></script>
+<script src="Lib/ui/jquery.ui.button.js"></script>
+<script src="Lib/ui/jquery.ui.dialog.js"></script>
 
 <script>
 $( document ).ready(function() {
@@ -226,6 +307,19 @@ $( document ).ready(function() {
 		$('#start button:first').attr('onclick', 'onSupportRequestedAction()');
 		
 		supportClient.hangup();
+		
+		$(function() {
+				$( "#tnps-dialog" ).dialog({width: '600px', 
+				                           resizable: false, 
+										   buttons: {"Cancel": function(){
+											             $( this ).dialog( "close" );
+										             }, 
+										             "OK": function(){
+														 $( this ).dialog( "close" );
+													 }
+										  }
+			    });
+		});
 	}
 
 </script>
